@@ -8,10 +8,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class Tracker extends JPanel implements ActionListener {
-	protected static JButton bLoad, bSave;
-	String file_name = "C:/Dropbox/Working/Tracker.txt";
+	private static JButton bLoad, bSave;
 
-	public Tracker() {
+	private Tracker() {
 		bLoad = new JButton("Load log file");
 		bLoad.setActionCommand("load");
 		bLoad.addActionListener(this);
@@ -26,6 +25,8 @@ public class Tracker extends JPanel implements ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent e) {
+		String file_name = "C:/Dropbox/Working/Tracker.txt";
+
 		if ("load".equals(e.getActionCommand())) {
 			bLoad.setEnabled(false);
 			bSave.setEnabled(true);
