@@ -5,37 +5,35 @@ import java.io.FileReader;
 import java.io.BufferedReader;
 
 class ReadFile {
-	private String path;
+	private final String path;
 
 	ReadFile(String file_path) {
 		path = file_path;
 	}
 
 	String[] OpenFile() throws IOException {
-		FileReader fr = new FileReader(path);
-		BufferedReader textReader = new BufferedReader(fr);
-
 		int numberOfLines = readLines();
 		String[] textData = new String[numberOfLines];
+		FileReader fr = new FileReader(path);
+		BufferedReader br = new BufferedReader(fr);
 
 		for (int i = 0; i < numberOfLines; ++i)
-			textData[i] = textReader.readLine();
-		
-		textReader.close();
+			textData[i] = br.readLine();
+
+		br.close();
 		return textData;
 	}
 
 	private int readLines() throws IOException {
-		FileReader file_to_read = new FileReader(path);
-		BufferedReader bf = new BufferedReader(file_to_read);
-
 		int numberOfLines = 0;
-		
-		while ((bf.readLine()) != null)
+		FileReader fr = new FileReader(path);
+		BufferedReader br = new BufferedReader(fr);
+
+		while ((br.readLine()) != null)
 			++numberOfLines;
-		
-		bf.close();
-		
+
+		br.close();
+
 		return numberOfLines;
 	}
 }
