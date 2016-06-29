@@ -3,12 +3,11 @@ package com.johnwingfield;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
 
-public class Tracker extends JPanel implements ActionListener {
+class Tracker extends JPanel implements ActionListener {
 	private static JButton bLoad, bSave;
+	private static JTextField tJob;
 
 	private Tracker() {
 		bLoad = new JButton("Load log file");
@@ -20,8 +19,11 @@ public class Tracker extends JPanel implements ActionListener {
 		bSave.addActionListener(this);
 		bSave.setEnabled(false);
 
+		tJob = new JTextField(20);
+
 		add(bLoad);
 		add(bSave);
+		add(tJob);
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -35,23 +37,24 @@ public class Tracker extends JPanel implements ActionListener {
 				ReadFile file = new ReadFile(file_name);
 				String[] aryLines = file.OpenFile();
 
-//				for (int i = 0; i < aryLines.length; ++i)
-//					System.out.println(aryLines[i]);
+				for (String aryLine : aryLines)
+					System.out.println(aryLine);
 			}
 			catch (IOException ioE) { // var e of type IOException
 				System.out.println(ioE.getMessage());
 			}
 		}
 		else {
-			bLoad.setEnabled(true);
-			bSave.setEnabled(false);
+			if (tJob.getText().length() > 0) {
+				bLoad.setEnabled(true);
+				bSave.setEnabled(false);
 
-			try {
-				WriteFile data = new WriteFile(file_name, true);
-				data.WriteToFile("Another line of text");
-			}
-			catch (IOException ioE) {
-				System.out.println(ioE.getMessage());
+				try {
+					WriteFile data = new WriteFile(file_name);
+					data.WriteToFile(tJob.getText());
+				} catch (IOException ioE) {
+					System.out.println(ioE.getMessage());
+				}
 			}
 		}
 	}
