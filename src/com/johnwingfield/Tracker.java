@@ -7,7 +7,7 @@ import javax.swing.*;
 
 class Tracker extends JPanel implements ActionListener {
 	private static JButton bLoad, bSave, bStart, bStop;
-	private static JTextField tJob;
+	private static JTextField tJob, tCode;
 	private long startTime = 0;
 
 	private Tracker() {
@@ -15,12 +15,13 @@ class Tracker extends JPanel implements ActionListener {
 		bLoad.setActionCommand("load");
 		bLoad.addActionListener(this);
 
-		bSave = new JButton("Save text to log");
+		bSave = new JButton("Save project/code");
 		bSave.setActionCommand("save");
 		bSave.addActionListener(this);
 		bSave.setEnabled(false);
 
-		tJob = new JTextField(20);
+		tJob = new JTextField("project", 20);
+		tCode = new JTextField("code", 10);
 
 		bStart = new JButton("Start timer");
 		bStart.setActionCommand("start");
@@ -34,6 +35,7 @@ class Tracker extends JPanel implements ActionListener {
 		add(bLoad);
 		add(bSave);
 		add(tJob);
+		add(tCode);
 		add(bStart);
 		add(bStop);
 	}
@@ -53,7 +55,7 @@ class Tracker extends JPanel implements ActionListener {
 					for (String aryLine : aryLines)
 						System.out.println(aryLine);
 				}
-				catch (IOException ioE) { // var e of type IOException
+				catch (IOException ioE) {
 					System.out.println(ioE.getMessage());
 				}
 				break;
@@ -64,7 +66,7 @@ class Tracker extends JPanel implements ActionListener {
 
 					try {
 						WriteFile data = new WriteFile(file_name);
-						data.WriteToFile(tJob.getText());
+						data.WriteToFile(tJob.getText() + ", " + tCode.getText());
 					} catch (IOException ioE) {
 						System.out.println(ioE.getMessage());
 					}
@@ -109,11 +111,6 @@ class Tracker extends JPanel implements ActionListener {
 	}
 
 	public static void main(String[] args) {
-		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-
-			public void run() {
-				createGUI();
-			}
-		});
+		javax.swing.SwingUtilities.invokeLater(Tracker::createGUI);
 	}
 }
