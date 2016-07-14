@@ -19,11 +19,11 @@ class WriteFile {
 //		append_to_file = true;
 //	}
 	
-	void WriteToFile(String textLine) throws IOException {
-		FileWriter write = new FileWriter(path, true);
-		PrintWriter print_line = new PrintWriter(write);
-		
-		print_line.printf("%s" + "%n",textLine);
-		print_line.close();
+	void addToFile(String textLine) throws IOException {
+		try (PrintWriter pw = new PrintWriter(new FileWriter(path, true))) {
+			pw.printf("%s" + "%n",textLine);
+		} catch (IOException IOe) {
+			System.out.println(IOe.getMessage());
+		}
 	}
 }
