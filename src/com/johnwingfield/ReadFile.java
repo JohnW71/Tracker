@@ -11,7 +11,7 @@ class ReadFile {
 		path = file_path;
 	}
 
-	String[] OpenFile() throws IOException {
+	String[] openFile() throws IOException {
 		int numberOfLines = readLines();
 		String[] textData = new String[numberOfLines];
 		FileReader fr = new FileReader(path);
