@@ -3,6 +3,8 @@ package com.johnwingfield;
 import java.io.IOException;
 import java.io.FileReader;
 import java.io.BufferedReader;
+import java.util.ArrayList;
+import java.util.List;
 
 class ReadFile {
 	private final String path;
@@ -11,20 +13,24 @@ class ReadFile {
 		path = file_path;
 	}
 
-	String[] openFile() throws IOException {
-		int numberOfLines = readLines();
-		String[] textData = new String[numberOfLines];
-		FileReader fr = new FileReader(path);
-		BufferedReader br = new BufferedReader(fr);
+	List<String> OpenFile() throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader(path));
+		String line;
+		List<String> values = new ArrayList<>();
 
-		for (int i = 0; i < numberOfLines; ++i)
-			textData[i] = br.readLine();
+		while ((line = br.readLine()) != null) {
+			String str[] = line.split(",");
+			values.add(str[0]);
+			values.add(str[1]);
+			values.add(str[2]);
+		}
 
 		br.close();
-		return textData;
+
+		return values;
 	}
 
-	private int readLines() throws IOException {
+/*	private int ReadLines() throws IOException {
 		int numberOfLines = 0;
 		FileReader fr = new FileReader(path);
 		BufferedReader br = new BufferedReader(fr);
@@ -35,5 +41,5 @@ class ReadFile {
 		br.close();
 
 		return numberOfLines;
-	}
+	}*/
 }
