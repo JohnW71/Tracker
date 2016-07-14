@@ -2,9 +2,9 @@ package com.johnwingfield;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 
 class Tracker extends JPanel implements ActionListener {
@@ -54,26 +54,11 @@ class Tracker extends JPanel implements ActionListener {
 				bSave.setEnabled(true);
 
 				try {
-/*					ReadFile file = new ReadFile(file_name);
-					String[] aryLines = file.openFile();
-
-					for (String aryLine : aryLines)
-						System.out.println(aryLine);*/
-
-					BufferedReader br = new BufferedReader(new FileReader(file_name));
-					String line;
-
-					while ((line = br.readLine()) != null) {
-						String[] values = line.split(",");
-
-						for (String str : values) {
-							System.out.println(str);
-						}
-					}
-
-					br.close();
+					ReadFile file = new ReadFile(file_name);
+					List<String> aryLines = new ArrayList<>(file.OpenFile());
+					aryLines.forEach(System.out::println);
 				}
-				catch (IOException IOe) {
+				catch (Exception IOe) {
 					System.out.println(IOe.getMessage());
 				}
 				break;
@@ -84,7 +69,7 @@ class Tracker extends JPanel implements ActionListener {
 
 					try {
 						WriteFile data = new WriteFile(file_name);
-						data.addToFile(tJob.getText() + "," + tCode.getText() + "," + tDuration.getText());
+						data.AddToFile(tJob.getText() + "," + tCode.getText() + "," + tDuration.getText());
 					} catch (IOException IOe) {
 						System.out.println(IOe.getMessage());
 					}
