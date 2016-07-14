@@ -2,12 +2,14 @@ package com.johnwingfield;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import javax.swing.*;
 
 class Tracker extends JPanel implements ActionListener {
 	private static JButton bLoad, bSave, bStart, bStop;
-	private static JTextField tJob, tCode;
+	private static JTextField tJob, tCode, tDuration;
 	private long startTime = 0;
 
 	private Tracker() {
@@ -32,12 +34,15 @@ class Tracker extends JPanel implements ActionListener {
 		bStop.addActionListener(this);
 		bStop.setEnabled(false);
 
+		tDuration = new JTextField("1", 10);
+
 		add(bLoad);
 		add(bSave);
 		add(tJob);
 		add(tCode);
 		add(bStart);
 		add(bStop);
+		add(tDuration);
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -49,14 +54,27 @@ class Tracker extends JPanel implements ActionListener {
 				bSave.setEnabled(true);
 
 				try {
-					ReadFile file = new ReadFile(file_name);
-					String[] aryLines = file.OpenFile();
+/*					ReadFile file = new ReadFile(file_name);
+					String[] aryLines = file.openFile();
 
 					for (String aryLine : aryLines)
-						System.out.println(aryLine);
+						System.out.println(aryLine);*/
+
+					BufferedReader br = new BufferedReader(new FileReader(file_name));
+					String line;
+
+					while ((line = br.readLine()) != null) {
+						String[] values = line.split(",");
+
+						for (String str : values) {
+							System.out.println(str);
+						}
+					}
+
+					br.close();
 				}
-				catch (IOException ioE) {
-					System.out.println(ioE.getMessage());
+				catch (IOException IOe) {
+					System.out.println(IOe.getMessage());
 				}
 				break;
 			case "save":
@@ -66,9 +84,9 @@ class Tracker extends JPanel implements ActionListener {
 
 					try {
 						WriteFile data = new WriteFile(file_name);
-						data.WriteToFile(tJob.getText() + ", " + tCode.getText());
-					} catch (IOException ioE) {
-						System.out.println(ioE.getMessage());
+						data.addToFile(tJob.getText() + "," + tCode.getText() + "," + tDuration.getText());
+					} catch (IOException IOe) {
+						System.out.println(IOe.getMessage());
 					}
 				}
 				break;
@@ -86,6 +104,7 @@ class Tracker extends JPanel implements ActionListener {
 				int minutes = (int) (duration / 60) % 60;
 				int hours   = (int) (duration / 3600) % 24;
 
+				tDuration.setText(String.valueOf(duration));
 				System.out.printf("%02d:%02d:%02d\n", hours, minutes, seconds);
 				break;
 		}
