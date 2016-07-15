@@ -9,7 +9,7 @@ import javax.swing.*;
 
 class Tracker extends JPanel implements ActionListener {
 	private static JButton bLoad, bSave, bStart, bStop;
-	private static JTextField tJob, tCode, tDuration;
+	private static JTextField tJob, tCode, tDuration, tDate;
 	private long startTime = 0;
 
 	private Tracker() {
@@ -24,6 +24,7 @@ class Tracker extends JPanel implements ActionListener {
 
 		tJob = new JTextField("project", 20);
 		tCode = new JTextField("code", 10);
+		tDate = new JTextField("ddmmyy", 6);
 
 		bStart = new JButton("Start timer");
 		bStart.setActionCommand("start");
@@ -40,6 +41,7 @@ class Tracker extends JPanel implements ActionListener {
 		add(bSave);
 		add(tJob);
 		add(tCode);
+		add(tDate);
 		add(bStart);
 		add(bStop);
 		add(tDuration);
@@ -54,7 +56,7 @@ class Tracker extends JPanel implements ActionListener {
 				bSave.setEnabled(true);
 
 				try {
-					ReadFile file = new ReadFile(file_name);
+					ReadLog file = new ReadLog(file_name);
 					List<String> aryLines = new ArrayList<>(file.OpenFile());
 					aryLines.forEach(System.out::println);
 				}
@@ -68,9 +70,13 @@ class Tracker extends JPanel implements ActionListener {
 					bSave.setEnabled(false);
 
 					try {
-						WriteFile data = new WriteFile(file_name);
-						data.AddToFile(tJob.getText() + "," + tCode.getText() + "," + tDuration.getText());
-					} catch (IOException IOe) {
+						WriteLog data = new WriteLog(file_name);
+						data.AddToFile( tJob.getText() + "," +
+										tCode.getText() + "," +
+										tDuration.getText() +"," +
+										tDate.getText());
+					}
+					catch (IOException IOe) {
 						System.out.println(IOe.getMessage());
 					}
 				}
@@ -95,21 +101,16 @@ class Tracker extends JPanel implements ActionListener {
 		}
 	}
 
-	// Create the GUI and show it.
 	private static void createGUI() {
 		JFrame.setDefaultLookAndFeelDecorated(true);
-
-		// Create and set up the frame.
 		JFrame frame = new JFrame("Tracker");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		// Create and set up the content pane.
 		Tracker contentPane = new Tracker();
-		contentPane.setOpaque(true); // content panes must be opaque
-		frame.getRootPane().setDefaultButton(bLoad);
-		frame.setContentPane(contentPane);
+		contentPane.setOpaque(true);
 
-		// Display the window.
+		frame.getRootPane().setDefaultButton(bStart);
+		frame.setContentPane(contentPane);
 		frame.pack();
 		frame.setVisible(true);
 	}

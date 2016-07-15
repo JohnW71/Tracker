@@ -4,17 +4,17 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
 
-class WriteFile {
+class WriteLog {
 	private final String path;
 //	private boolean append_to_file = false;
 
 	// constructor
-	WriteFile(String file_path) {
+	WriteLog(String file_path) {
 		path = file_path;
 	}
 
 	// constructor, if append value is passed when object created
-//	WriteFile(String file_path, boolean append_value) {
+//	WriteLog(String file_path, boolean append_value) {
 //		path = file_path;
 //		append_to_file = true;
 //	}
