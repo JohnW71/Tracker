@@ -6,10 +6,10 @@ import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.List;
 
-class ReadFile {
+class ReadLog {
 	private final String path;
 
-	ReadFile(String file_path) {
+	ReadLog(String file_path) {
 		path = file_path;
 	}
 
@@ -23,6 +23,7 @@ class ReadFile {
 			values.add(str[0]);
 			values.add(str[1]);
 			values.add(str[2]);
+			values.add(str[3]);
 		}
 
 		br.close();
