@@ -1,121 +1,109 @@
 package com.johnwingfield;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javafx.application.*;
+import javafx.geometry.*;
+import javafx.scene.*;
+import javafx.stage.*;
+import javafx.scene.layout.*;
+import javafx.scene.control.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.*;
 
-class Tracker extends JPanel implements ActionListener {
-	private static JButton bLoad, bSave, bStart, bStop;
-	private static JTextField tJob, tCode, tDuration, tDate;
+public class Tracker extends Application {
 	private long startTime = 0;
+	private String file_name = "C:/Dropbox/Working/Tracker.txt";
 
-	private Tracker() {
-		bLoad = new JButton("Load log file");
-		bLoad.setActionCommand("load");
-		bLoad.addActionListener(this);
+	public void start(Stage myStage) {
+		myStage.setTitle("Tracker");
+		FlowPane rootNode = new FlowPane(10, 10);
+		rootNode.setAlignment(Pos.CENTER);
+		Scene myScene = new Scene(rootNode, 300, 200);
+		myStage.setScene(myScene);
 
-		bSave = new JButton("Save project/code");
-		bSave.setActionCommand("save");
-		bSave.addActionListener(this);
-		bSave.setEnabled(false);
+		Button bLoad = new Button("Load log file");
+		Button bSave = new Button("Save project/code");
+		bSave.setDisable(true);
 
-		tJob = new JTextField("project", 20);
-		tCode = new JTextField("code", 10);
-		tDate = new JTextField("ddmmyy", 6);
+		Button bStart = new Button("Start timer");
+		Button bStop = new Button("Stop timer");
+		bStop.setDisable(true);
 
-		bStart = new JButton("Start timer");
-		bStart.setActionCommand("start");
-		bStart.addActionListener(this);
+		TextField tJob = new TextField();
+		tJob.setPromptText("project");
+		tJob.setPrefColumnCount(20);
 
-		bStop = new JButton("Stop timer");
-		bStop.setActionCommand("stop");
-		bStop.addActionListener(this);
-		bStop.setEnabled(false);
+		TextField tCode = new TextField();
+		tCode.setPromptText("code");
+		tCode.setPrefColumnCount(10);
 
-		tDuration = new JTextField("1", 10);
+		TextField tDate = new TextField();
+		tDate.setPromptText("ddmmyy");
+		tDate.setPrefColumnCount(6);
 
-		add(bLoad);
-		add(bSave);
-		add(tJob);
-		add(tCode);
-		add(tDate);
-		add(bStart);
-		add(bStop);
-		add(tDuration);
-	}
+		TextField tDuration = new TextField();
+		tDuration.setPromptText("1");
+		tDuration.setPrefColumnCount(10);
 
-	public void actionPerformed(ActionEvent e) {
-		String file_name = "C:/Dropbox/Working/Tracker.txt";
+		bLoad.setOnAction(ae -> {
+			bLoad.setDisable(true);
+			bSave.setDisable(false);
 
-		switch(e.getActionCommand()) {
-			case "load":
-				bLoad.setEnabled(false);
-				bSave.setEnabled(true);
+			try {
+				ReadLog file = new ReadLog(file_name);
+				List<String> aryLines = new ArrayList<>(file.OpenFile());
+				aryLines.forEach(System.out::println);
+			}
+			catch (Exception IOe) {
+				System.out.println(IOe.getMessage());
+			}
+		});
+
+		bSave.setOnAction(ae -> {
+			if (tJob.getText().length() > 0) {
+				bLoad.setDisable(false);
+				bSave.setDisable(true);
 
 				try {
-					ReadLog file = new ReadLog(file_name);
-					List<String> aryLines = new ArrayList<>(file.OpenFile());
-					aryLines.forEach(System.out::println);
+					WriteLog data = new WriteLog(file_name);
+					data.AddToFile( tJob.getText() + "," +
+									tCode.getText() + "," +
+									tDuration.getText() +"," +
+									tDate.getText());
 				}
-				catch (Exception IOe) {
+				catch (IOException IOe) {
 					System.out.println(IOe.getMessage());
 				}
-				break;
-			case "save":
-				if (tJob.getText().length() > 0) {
-					bLoad.setEnabled(true);
-					bSave.setEnabled(false);
+			}
+		});
 
-					try {
-						WriteLog data = new WriteLog(file_name);
-						data.AddToFile( tJob.getText() + "," +
-										tCode.getText() + "," +
-										tDuration.getText() +"," +
-										tDate.getText());
-					}
-					catch (IOException IOe) {
-						System.out.println(IOe.getMessage());
-					}
-				}
-				break;
-			case "start":
-				bStart.setEnabled(false);
-				bStop.setEnabled(true);
-				startTime = System.currentTimeMillis();
-				break;
-			case "stop":
-				bStart.setEnabled(true);
-				bStop.setEnabled(false);
-				long currentTime = System.currentTimeMillis();
-				long duration = (currentTime - startTime) / 1000;
-				int seconds = (int) duration % 60;
-				int minutes = (int) (duration / 60) % 60;
-				int hours   = (int) (duration / 3600) % 24;
+		bStart.setOnAction(ae -> {
+			bStart.setDisable(true);
+			bStop.setDisable(false);
 
-				tDuration.setText(String.valueOf(duration));
-				System.out.printf("%02d:%02d:%02d\n", hours, minutes, seconds);
-				break;
-		}
-	}
+			startTime = System.currentTimeMillis();
+		});
 
-	private static void createGUI() {
-		JFrame.setDefaultLookAndFeelDecorated(true);
-		JFrame frame = new JFrame("Tracker");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		bStop.setOnAction(ae -> {
+			bStart.setDisable(false);
+			bStop.setDisable(true);
 
-		Tracker contentPane = new Tracker();
-		contentPane.setOpaque(true);
+			long currentTime = System.currentTimeMillis();
+			long duration = (currentTime - startTime) / 1000;
+			int seconds = (int) duration % 60;
+			int minutes = (int) (duration / 60) % 60;
+			int hours   = (int) (duration / 3600) % 24;
 
-		frame.getRootPane().setDefaultButton(bStart);
-		frame.setContentPane(contentPane);
-		frame.pack();
-		frame.setVisible(true);
+			tDuration.setText(String.valueOf(duration));
+			System.out.printf("%02d:%02d:%02d\n", hours, minutes, seconds);
+		});
+
+		rootNode.getChildren().addAll(bLoad, bSave, tJob, tCode, tDate, bStart, bStop, tDuration);
+		myStage.show();
 	}
 
 	public static void main(String[] args) {
-		javax.swing.SwingUtilities.invokeLater(Tracker::createGUI);
+		launch(args);
 	}
 }
