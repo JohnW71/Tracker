@@ -10,19 +10,30 @@ import javafx.scene.control.TextField;
 import javafx.stage.*;
 import javafx.scene.layout.*;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO log should be loaded on program start
+// TODO duration should update constantly
+// TODO re-arrange layout to intended look
+// TODO change old job list to scrolling list, buttons should only apply to first row
+// TODO what will EDIT actually do?
+// TODO decide how log will be imported and stored in memory, for editing/deleting
+// TODO log file location should detect/default to program location
+
 public class Tracker extends Application {
 	private long startTime = 0;
 	private String file_name = "C:/Dropbox/Working/Tracker.txt";
-	private Button bLoad, bSave, bStart, bStop;
+	private Button bLoad, bSave, bStart, bStop, bContinue, bEdit, bDelete;
 	private TextField tJob, tCode, tDuration, tDate;
+	private Label lProject1, lCode1, lDuration1, lDate1;
+	private Timer durTimer;
 
 	private void loadLog() {
-		bLoad.setDisable(true);
-		bSave.setDisable(false);
+//		bLoad.setDisable(true);
+//		bSave.setDisable(false);
 
 		try {
 			ReadLog file = new ReadLog(file_name);
@@ -36,8 +47,8 @@ public class Tracker extends Application {
 
 	private void saveLog() {
 		if (tJob.getText().length() > 0) {
-			bLoad.setDisable(false);
-			bSave.setDisable(true);
+//			bLoad.setDisable(false);
+//			bSave.setDisable(true);
 
 			try {
 				WriteLog data = new WriteLog(file_name);
@@ -57,20 +68,44 @@ public class Tracker extends Application {
 		bStop.setDisable(false);
 
 		startTime = System.currentTimeMillis();
+
+		durTimer = new Timer(500, e -> updateTimer());
+		durTimer.start();
 	}
 
-	private void stopTimer() {
-		bStart.setDisable(false);
-		bStop.setDisable(true);
-
+	private void updateTimer() {
 		long currentTime = System.currentTimeMillis();
 		long duration = (currentTime - startTime) / 1000;
 		int seconds = (int) duration % 60;
 		int minutes = (int) (duration / 60) % 60;
 		int hours   = (int) (duration / 3600) % 24;
 
-		tDuration.setText(String.valueOf(duration));
-		System.out.printf("%02d:%02d:%02d\n", hours, minutes, seconds);
+		tDuration.setText(String.valueOf(hours) + ":" + String.valueOf(minutes) + ":" + String.valueOf(seconds));
+//		System.out.printf("%02d:%02d:%02d\n", hours, minutes, seconds);
+	}
+
+	private void stopTimer() {
+		bStart.setDisable(false);
+		bStop.setDisable(true);
+		bContinue.setDisable(false);
+		durTimer.stop();
+	}
+
+	private void continueOldJob() {
+		tJob.setText(lProject1.getText());
+		tCode.setText(lCode1.getText());
+		tDuration.setText(lDuration1.getText());
+		tDate.setText(lDate1.getText());
+		bContinue.setDisable(true);
+		startTimer();
+	}
+
+	private void editOldJob() {
+		System.out.println("TODO");
+	}
+
+	private void deleteOldJob() {
+		System.out.println("TODO");
 	}
 
 	public void start(Stage myStage) {
@@ -92,7 +127,7 @@ public class Tracker extends Application {
 		bSave = new Button("Save project/code");
 		GridPane.setHalignment(bSave, HPos.CENTER);
 		gridpane.add(bSave, 1, 0);
-		bSave.setDisable(true);
+//		bSave.setDisable(true);
 
 		bStart = new Button("Start timer");
 		GridPane.setHalignment(bStart, HPos.CENTER);
@@ -139,16 +174,16 @@ public class Tracker extends Application {
 		gridpane2.setHgap(10);
 		gridpane2.setVgap(19);
 
-		Label lProject1 = new Label("Project1");
+		lProject1 = new Label("Project1");
 		GridPane.setHalignment(lProject1, HPos.CENTER);
 		gridpane2.add(lProject1, 0, 0);
-		Label lCode1 = new Label("Code1");
+		lCode1 = new Label("Code1");
 		GridPane.setHalignment(lCode1, HPos.CENTER);
 		gridpane2.add(lCode1, 1, 0);
-		Label lDate1 = new Label("Date1");
+		lDate1 = new Label("Date1");
 		GridPane.setHalignment(lDate1, HPos.CENTER);
 		gridpane2.add(lDate1, 2, 0);
-		Label lDuration1 = new Label("Duration1");
+		lDuration1 = new Label("Duration1");
 		GridPane.setHalignment(lDuration1, HPos.CENTER);
 		gridpane2.add(lDuration1, 3, 0);
 
@@ -214,17 +249,17 @@ public class Tracker extends Application {
 		gridpane3.setHgap(10);
 		gridpane3.setVgap(10);
 
-		Button bContinue1 = new Button("Continue");
-		GridPane.setHalignment(bContinue1, HPos.CENTER);
-		gridpane3.add(bContinue1, 0, 0);
-		Button bEdit1 = new Button("Edit");
-		GridPane.setHalignment(bEdit1, HPos.CENTER);
-		gridpane3.add(bEdit1, 1, 0);
-		Button bDelete1 = new Button("Delete");
-		GridPane.setHalignment(bDelete1, HPos.CENTER);
-		gridpane3.add(bDelete1, 2, 0);
+		bContinue = new Button("Continue");
+		GridPane.setHalignment(bContinue, HPos.CENTER);
+		gridpane3.add(bContinue, 0, 0);
+		bEdit = new Button("Edit");
+		GridPane.setHalignment(bEdit, HPos.CENTER);
+		gridpane3.add(bEdit, 1, 0);
+		bDelete = new Button("Delete");
+		GridPane.setHalignment(bDelete, HPos.CENTER);
+		gridpane3.add(bDelete, 2, 0);
 
-		Button bContinue2 = new Button("Continue");
+/*		Button bContinue2 = new Button("Continue");
 		GridPane.setHalignment(bContinue2, HPos.CENTER);
 		gridpane3.add(bContinue2, 0, 1);
 		Button bEdit2 = new Button("Edit");
@@ -262,7 +297,11 @@ public class Tracker extends Application {
 		gridpane3.add(bEdit5, 1, 4);
 		Button bDelete5 = new Button("Delete");
 		GridPane.setHalignment(bDelete5, HPos.CENTER);
-		gridpane3.add(bDelete5, 2, 4);
+		gridpane3.add(bDelete5, 2, 4);*/
+
+		bContinue.setOnAction(ae -> continueOldJob());
+		bEdit.setOnAction(ae -> editOldJob());
+		bDelete.setOnAction(ae -> deleteOldJob());
 
 		rootNode.getChildren().add(gridpane3);
 
@@ -271,6 +310,7 @@ public class Tracker extends Application {
 
 		myStage.setScene(myScene);
 		myStage.show();
+		loadLog();
 	}
 
 	public static void main(String[] args) {
