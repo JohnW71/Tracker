@@ -2,10 +2,13 @@ package com.johnwingfield;
 
 import javafx.application.*;
 import javafx.geometry.*;
+import javafx.geometry.Insets;
 import javafx.scene.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.stage.*;
 import javafx.scene.layout.*;
-import javafx.scene.control.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +17,61 @@ import java.util.List;
 public class Tracker extends Application {
 	private long startTime = 0;
 	private String file_name = "C:/Dropbox/Working/Tracker.txt";
+	private Button bLoad, bSave, bStart, bStop;
+	private TextField tJob, tCode, tDuration, tDate;
+
+	private void loadLog() {
+		bLoad.setDisable(true);
+		bSave.setDisable(false);
+
+		try {
+			ReadLog file = new ReadLog(file_name);
+			List<String> aryLines = new ArrayList<>(file.OpenFile());
+			aryLines.forEach(System.out::println);
+		}
+		catch (Exception IOe) {
+			System.out.println(IOe.getMessage());
+		}
+	}
+
+	private void saveLog() {
+		if (tJob.getText().length() > 0) {
+			bLoad.setDisable(false);
+			bSave.setDisable(true);
+
+			try {
+				WriteLog data = new WriteLog(file_name);
+				data.AddToFile( tJob.getText() + "," +
+								tCode.getText() + "," +
+								tDuration.getText() +"," +
+								tDate.getText());
+			}
+			catch (IOException IOe) {
+				System.out.println(IOe.getMessage());
+			}
+		}
+	}
+
+	private void startTimer() {
+		bStart.setDisable(true);
+		bStop.setDisable(false);
+
+		startTime = System.currentTimeMillis();
+	}
+
+	private void stopTimer() {
+		bStart.setDisable(false);
+		bStop.setDisable(true);
+
+		long currentTime = System.currentTimeMillis();
+		long duration = (currentTime - startTime) / 1000;
+		int seconds = (int) duration % 60;
+		int minutes = (int) (duration / 60) % 60;
+		int hours   = (int) (duration / 3600) % 24;
+
+		tDuration.setText(String.valueOf(duration));
+		System.out.printf("%02d:%02d:%02d\n", hours, minutes, seconds);
+	}
 
 	public void start(Stage myStage) {
 		myStage.setTitle("Tracker");
@@ -27,100 +85,52 @@ public class Tracker extends Application {
 
 		Scene myScene = new Scene(rootNode, 600, 400);
 
-		Button bLoad = new Button("Load log file");
+		bLoad = new Button("Load log file");
 		GridPane.setHalignment(bLoad, HPos.CENTER);
 		gridpane.add(bLoad, 0, 0);
 
-		Button bSave = new Button("Save project/code");
+		bSave = new Button("Save project/code");
 		GridPane.setHalignment(bSave, HPos.CENTER);
 		gridpane.add(bSave, 1, 0);
 		bSave.setDisable(true);
 
-		Button bStart = new Button("Start timer");
+		bStart = new Button("Start timer");
 		GridPane.setHalignment(bStart, HPos.CENTER);
 		gridpane.add(bStart, 0, 1);
 
-		TextField tDuration = new TextField();
+		tDuration = new TextField();
 		tDuration.setPromptText("1");
 		tDuration.setPrefColumnCount(8);
 		GridPane.setHalignment(tDuration, HPos.CENTER);
 		gridpane.add(tDuration, 1, 1);
 
-		Button bStop = new Button("Stop timer");
+		bStop = new Button("Stop timer");
 		GridPane.setHalignment(bStop, HPos.CENTER);
 		gridpane.add(bStop, 2, 1);
 		bStop.setDisable(true);
 
-		TextField tJob = new TextField();
+		tJob = new TextField();
 		tJob.setPromptText("project");
 		tJob.setPrefColumnCount(20);
 		GridPane.setHalignment(tJob, HPos.CENTER);
 		gridpane.add(tJob, 0, 2);
 
-		TextField tCode = new TextField();
+		tCode = new TextField();
 		tCode.setPromptText("code");
 		tCode.setPrefColumnCount(15);
 		GridPane.setHalignment(tCode, HPos.CENTER);
 		gridpane.add(tCode, 1, 2);
 
-		TextField tDate = new TextField();
+		tDate = new TextField();
 		tDate.setPromptText("ddmmyy");
 		tDate.setPrefColumnCount(6);
 		GridPane.setHalignment(tDate, HPos.CENTER);
 		gridpane.add(tDate, 2, 2);
 
-		bLoad.setOnAction(ae -> {
-			bLoad.setDisable(true);
-			bSave.setDisable(false);
-
-			try {
-				ReadLog file = new ReadLog(file_name);
-				List<String> aryLines = new ArrayList<>(file.OpenFile());
-				aryLines.forEach(System.out::println);
-			}
-			catch (Exception IOe) {
-				System.out.println(IOe.getMessage());
-			}
-		});
-
-		bSave.setOnAction(ae -> {
-			if (tJob.getText().length() > 0) {
-				bLoad.setDisable(false);
-				bSave.setDisable(true);
-
-				try {
-					WriteLog data = new WriteLog(file_name);
-					data.AddToFile( tJob.getText() + "," +
-									tCode.getText() + "," +
-									tDuration.getText() +"," +
-									tDate.getText());
-				}
-				catch (IOException IOe) {
-					System.out.println(IOe.getMessage());
-				}
-			}
-		});
-
-		bStart.setOnAction(ae -> {
-			bStart.setDisable(true);
-			bStop.setDisable(false);
-
-			startTime = System.currentTimeMillis();
-		});
-
-		bStop.setOnAction(ae -> {
-			bStart.setDisable(false);
-			bStop.setDisable(true);
-
-			long currentTime = System.currentTimeMillis();
-			long duration = (currentTime - startTime) / 1000;
-			int seconds = (int) duration % 60;
-			int minutes = (int) (duration / 60) % 60;
-			int hours   = (int) (duration / 3600) % 24;
-
-			tDuration.setText(String.valueOf(duration));
-			System.out.printf("%02d:%02d:%02d\n", hours, minutes, seconds);
-		});
+		bLoad.setOnAction(ae -> loadLog());
+		bSave.setOnAction(ae -> saveLog());
+		bStart.setOnAction(ae -> startTimer());
+		bStop.setOnAction(ae -> stopTimer());
 
 		rootNode.getChildren().add(gridpane);
 
