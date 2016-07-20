@@ -23,11 +23,14 @@ import java.util.List;
 
 public class Tracker extends Application {
 	private long startTime = 0;
+	private long previousTime = 0;
+	private long duration = 0;
 	private String file_name = "C:/Dropbox/Working/Tracker.txt";
 	private Button bLoad, bSave, bStart, bStop, bContinue, bEdit, bDelete, bReset;
 	private TextField tJob, tCode, tDuration, tDate;
 	private Label lProject1, lCode1, lDuration1, lDate1;
 	private Timer durTimer;
+	private List<String> jobList;
 
 	private void loadLog() {
 //		bLoad.setDisable(true);
@@ -35,14 +38,14 @@ public class Tracker extends Application {
 
 		try {
 			ReadLog file = new ReadLog(file_name);
-			List<String> jobList = new ArrayList<>(file.OpenFile());
+			jobList = new ArrayList<>(file.OpenFile());
 //			jobList.forEach(System.out::println);
 
 			for (int i = 0; i < jobList.size(); i += 4) {
-				System.out.println( jobList.get(i) + " " +
-									jobList.get(i + 1) + " " +
-									jobList.get(i + 2) + " " +
-									jobList.get(i + 3));
+				System.out.println( jobList.get(i + Globals.PROJECT) + " " +
+									jobList.get(i + Globals.CODE) + " " +
+									jobList.get(i + Globals.DATE) + " " +
+									jobList.get(i + Globals.DURATION));
 			}
 		}
 		catch (Exception IOe) {
@@ -78,7 +81,7 @@ public class Tracker extends Application {
 
 	private void updateTimer() {
 		long currentTime = System.currentTimeMillis();
-		long duration = (currentTime - startTime) / 1000;
+		duration = ((currentTime - startTime) + previousTime) / 1000;
 		int seconds = (int) duration % 60;
 		int minutes = (int) (duration / 60) % 60;
 		int hours   = (int) (duration / 3600) % 24;
@@ -91,15 +94,18 @@ public class Tracker extends Application {
 		bStart.setDisable(false);
 		bStop.setDisable(true);
 		bContinue.setDisable(false);
+
 		durTimer.stop();
+		previousTime = duration * 1000;
 	}
 
 	private void continueOldJob() {
 		tJob.setText(lProject1.getText());
 		tCode.setText(lCode1.getText());
-		tDuration.setText(lDuration1.getText());
 		tDate.setText(lDate1.getText());
 		bContinue.setDisable(true);
+
+		previousTime = Long.parseLong(lDuration1.getText());
 		startTimer();
 	}
 
@@ -119,6 +125,9 @@ public class Tracker extends Application {
 		tJob.setText("project");
 		tCode.setText("code");
 		tDuration.setText("00:00:00");
+		tDate.setText("Today's date"); // TODO get date
+
+		previousTime = 0;
 	}
 
 	public void start(Stage myStage) {
@@ -179,10 +188,10 @@ public class Tracker extends Application {
 		GridPane.setHalignment(tDate, HPos.CENTER);
 		gridpane.add(tDate, 2, 2);
 
-		bLoad.setOnAction(ae -> loadLog());
-		bSave.setOnAction(ae -> saveLog());
+		bLoad.setOnAction( ae -> loadLog());
+		bSave.setOnAction( ae -> saveLog());
 		bStart.setOnAction(ae -> startTimer());
-		bStop.setOnAction(ae -> stopTimer());
+		bStop.setOnAction( ae -> stopTimer());
 		bReset.setOnAction(ae -> resetJob());
 
 		rootNode.getChildren().add(gridpane);
@@ -330,6 +339,20 @@ public class Tracker extends Application {
 		myStage.show();
 		loadLog();
 		durTimer = new Timer(500, e -> updateTimer());
+
+		// TODO remove fake labels
+		lProject1.setText(jobList.get(Globals.PROJECT));
+		lCode1.setText(jobList.get(Globals.CODE));
+		lDate1.setText(jobList.get(Globals.DATE));
+		lDuration1.setText(jobList.get(Globals.DURATION));
+		lProject2.setText(jobList.get(Globals.PROJECT + 4));
+		lCode2.setText(jobList.get(Globals.CODE + 4));
+		lDate2.setText(jobList.get(Globals.DATE + 4));
+		lDuration2.setText(jobList.get(Globals.DURATION + 4));
+		lProject3.setText(jobList.get(Globals.PROJECT + 8));
+		lCode3.setText(jobList.get(Globals.CODE + 8));
+		lDate3.setText(jobList.get(Globals.DATE + 8));
+		lDuration3.setText(jobList.get(Globals.DURATION + 8));
 	}
 
 	public static void main(String[] args) {
