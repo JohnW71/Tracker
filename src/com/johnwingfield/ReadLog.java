@@ -20,10 +20,10 @@ class ReadLog {
 
 		while ((line = br.readLine()) != null) {
 			String str[] = line.split(",");
-			values.add(str[0]);
-			values.add(str[1]);
-			values.add(str[2]);
-			values.add(str[3]);
+			values.add(str[Globals.PROJECT]);
+			values.add(str[Globals.CODE]);
+			values.add(str[Globals.DATE]);
+			values.add(str[Globals.DURATION]);
 		}
 
 		br.close();
