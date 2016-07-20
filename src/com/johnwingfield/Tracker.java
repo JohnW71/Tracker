@@ -15,17 +15,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO add a reset button
 // TODO re-arrange layout to intended look
 // TODO change old job list to scrolling list, buttons should only apply to first row
 // TODO what will EDIT actually do? load into current job for update? how to store it? change Edit to Save
 // TODO decide how log will be imported and stored in memory, for editing/deleting
-// TODO log file location should detect/default to program location
+// TODO log file location should detect/default to program location, defaults to top of project folder
 
 public class Tracker extends Application {
 	private long startTime = 0;
 	private String file_name = "C:/Dropbox/Working/Tracker.txt";
-	private Button bLoad, bSave, bStart, bStop, bContinue, bEdit, bDelete;
+	private Button bLoad, bSave, bStart, bStop, bContinue, bEdit, bDelete, bReset;
 	private TextField tJob, tCode, tDuration, tDate;
 	private Label lProject1, lCode1, lDuration1, lDate1;
 	private Timer durTimer;
@@ -36,8 +35,15 @@ public class Tracker extends Application {
 
 		try {
 			ReadLog file = new ReadLog(file_name);
-			List<String> aryLines = new ArrayList<>(file.OpenFile());
-			aryLines.forEach(System.out::println);
+			List<String> jobList = new ArrayList<>(file.OpenFile());
+//			jobList.forEach(System.out::println);
+
+			for (int i = 0; i < jobList.size(); i += 4) {
+				System.out.println( jobList.get(i) + " " +
+									jobList.get(i + 1) + " " +
+									jobList.get(i + 2) + " " +
+									jobList.get(i + 3));
+			}
 		}
 		catch (Exception IOe) {
 			System.out.println(IOe.getMessage());
@@ -67,8 +73,6 @@ public class Tracker extends Application {
 		bStop.setDisable(false);
 
 		startTime = System.currentTimeMillis();
-
-		durTimer = new Timer(500, e -> updateTimer());
 		durTimer.start();
 	}
 
@@ -107,6 +111,16 @@ public class Tracker extends Application {
 		System.out.println("TODO");
 	}
 
+	private void resetJob() {
+		if (durTimer.isRunning()) {
+			stopTimer();
+		}
+
+		tJob.setText("project");
+		tCode.setText("code");
+		tDuration.setText("00:00:00");
+	}
+
 	public void start(Stage myStage) {
 		myStage.setTitle("Tracker");
 		myStage.setResizable(false);
@@ -128,6 +142,10 @@ public class Tracker extends Application {
 		gridpane.add(bSave, 1, 0);
 //		bSave.setDisable(true);
 
+		bReset = new Button("Reset");
+		GridPane.setHalignment(bReset, HPos.CENTER);
+		gridpane.add(bReset, 2, 0);
+
 		bStart = new Button("Start timer");
 		GridPane.setHalignment(bStart, HPos.CENTER);
 		gridpane.add(bStart, 0, 1);
@@ -145,7 +163,7 @@ public class Tracker extends Application {
 
 		tJob = new TextField();
 		tJob.setPromptText("project");
-		tJob.setPrefColumnCount(20);
+		tJob.setPrefColumnCount(15);
 		GridPane.setHalignment(tJob, HPos.CENTER);
 		gridpane.add(tJob, 0, 2);
 
@@ -165,6 +183,7 @@ public class Tracker extends Application {
 		bSave.setOnAction(ae -> saveLog());
 		bStart.setOnAction(ae -> startTimer());
 		bStop.setOnAction(ae -> stopTimer());
+		bReset.setOnAction(ae -> resetJob());
 
 		rootNode.getChildren().add(gridpane);
 
@@ -310,6 +329,7 @@ public class Tracker extends Application {
 		myStage.setScene(myScene);
 		myStage.show();
 		loadLog();
+		durTimer = new Timer(500, e -> updateTimer());
 	}
 
 	public static void main(String[] args) {
