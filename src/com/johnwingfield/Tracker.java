@@ -12,12 +12,15 @@ import javafx.scene.layout.*;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-// TODO re-arrange layout to intended look
+// TODO re-arrange layout to intended look, TableView?
 // TODO change old job list to scrolling list, buttons should only apply to first row
-// TODO what will EDIT actually do? load into current job for update? how to store it? change Edit to Save
+// TODO what will EDIT actually do? load into current job for update? how to store it? change Edit to Save? TableView?
 // TODO decide how log will be imported and stored in memory, for editing/deleting
 // TODO log file location should detect/default to program location, defaults to top of project folder
 
@@ -122,12 +125,18 @@ public class Tracker extends Application {
 			stopTimer();
 		}
 
-		tJob.setText("project");
-		tCode.setText("code");
-		tDuration.setText("00:00:00");
-		tDate.setText("Today's date"); // TODO get date
+		tJob.setText("");
+		tCode.setText("");
+		tDuration.setText("");
 
 		previousTime = 0;
+		setDate();
+	}
+
+	private void setDate() {
+		DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
+		Date date = new Date();
+		tDate.setText(dateFormat.format(date));
 	}
 
 	public void start(Stage myStage) {
@@ -338,6 +347,7 @@ public class Tracker extends Application {
 		myStage.setScene(myScene);
 		myStage.show();
 		loadLog();
+		setDate();
 		durTimer = new Timer(500, e -> updateTimer());
 
 		// TODO remove fake labels
