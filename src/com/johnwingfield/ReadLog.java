@@ -6,6 +6,8 @@ import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO create file if it doesn't exist
+
 class ReadLog {
 	private final String path;
 
@@ -27,7 +29,6 @@ class ReadLog {
 		}
 
 		br.close();
-
 		return values;
 	}
 
@@ -40,7 +41,6 @@ class ReadLog {
 			++numberOfLines;
 
 		br.close();
-
 		return numberOfLines;
 	}*/
 }
