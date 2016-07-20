@@ -15,11 +15,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO log should be loaded on program start
-// TODO duration should update constantly
+// TODO add a reset button
 // TODO re-arrange layout to intended look
 // TODO change old job list to scrolling list, buttons should only apply to first row
-// TODO what will EDIT actually do?
+// TODO what will EDIT actually do? load into current job for update? how to store it? change Edit to Save
 // TODO decide how log will be imported and stored in memory, for editing/deleting
 // TODO log file location should detect/default to program location
 
@@ -80,7 +79,7 @@ public class Tracker extends Application {
 		int minutes = (int) (duration / 60) % 60;
 		int hours   = (int) (duration / 3600) % 24;
 
-		tDuration.setText(String.valueOf(hours) + ":" + String.valueOf(minutes) + ":" + String.valueOf(seconds));
+		tDuration.setText(String.format("%02d:%02d:%02d\n", hours, minutes, seconds));
 //		System.out.printf("%02d:%02d:%02d\n", hours, minutes, seconds);
 	}
 
@@ -134,7 +133,7 @@ public class Tracker extends Application {
 		gridpane.add(bStart, 0, 1);
 
 		tDuration = new TextField();
-		tDuration.setPromptText("1");
+		tDuration.setPromptText("00:00:00");
 		tDuration.setPrefColumnCount(8);
 		GridPane.setHalignment(tDuration, HPos.CENTER);
 		gridpane.add(tDuration, 1, 1);
