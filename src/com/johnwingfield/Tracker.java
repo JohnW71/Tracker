@@ -35,6 +35,20 @@ public class Tracker extends Application {
 	private Timer durTimer;
 	private List<String> jobList;
 
+	private long convertToMS(String txtDuration) {
+		return  (Long.parseLong(txtDuration.substring(0, 2)) * Globals.MS_PER_HOUR) +
+				(Long.parseLong(txtDuration.substring(3, 5)) * Globals.MS_PER_MIN) +
+				(Long.parseLong(txtDuration.substring(6, 8)) * Globals.MS_PER_SEC);
+	}
+
+	private String convertToStr(long msDuration) {
+		int seconds = (int) msDuration % Globals.SEC_PER_MIN;
+		int minutes = (int) (msDuration / Globals.SEC_PER_MIN) % Globals.MIN_PER_HOUR;
+		int hours   = (int) (msDuration / Globals.SEC_PER_HOUR) % Globals.HOUR_PER_DAY;
+
+		return(String.format("%02d:%02d:%02d\n", hours, minutes, seconds));
+	}
+
 	private void loadLog() {
 //		bLoad.setDisable(true);
 //		bSave.setDisable(false);
@@ -65,8 +79,8 @@ public class Tracker extends Application {
 				WriteLog data = new WriteLog(file_name);
 				data.AddToFile( tJob.getText() + "," +
 								tCode.getText() + "," +
-								tDuration.getText() +"," +
-								tDate.getText());
+								tDate.getText() +"," +
+								tDuration.getText());
 			}
 			catch (IOException IOe) {
 				System.out.println(IOe.getMessage());
@@ -84,12 +98,14 @@ public class Tracker extends Application {
 
 	private void updateTimer() {
 		long currentTime = System.currentTimeMillis();
-		duration = ((currentTime - startTime) + previousTime) / 1000;
-		int seconds = (int) duration % 60;
-		int minutes = (int) (duration / 60) % 60;
-		int hours   = (int) (duration / 3600) % 24;
+		duration = ((currentTime - startTime) + previousTime) / Globals.MS_PER_SEC;
+//		int seconds = (int) duration % Globals.SEC_PER_MIN;
+//		int minutes = (int) (duration / Globals.SEC_PER_MIN) % Globals.MIN_PER_HOUR;
+//		int hours   = (int) (duration / Globals.SEC_PER_HOUR) % Globals.HOUR_PER_DAY;
 
-		tDuration.setText(String.format("%02d:%02d:%02d\n", hours, minutes, seconds));
+//		tDuration.setText(String.format("%02d:%02d:%02d\n", hours, minutes, seconds));
+		tDuration.setText(convertToStr(duration));
+
 //		System.out.printf("%02d:%02d:%02d\n", hours, minutes, seconds);
 	}
 
@@ -99,7 +115,7 @@ public class Tracker extends Application {
 		bContinue.setDisable(false);
 
 		durTimer.stop();
-		previousTime = duration * 1000;
+		previousTime = duration * Globals.MS_PER_SEC;
 	}
 
 	private void continueOldJob() {
@@ -108,7 +124,11 @@ public class Tracker extends Application {
 		tDate.setText(lDate1.getText());
 		bContinue.setDisable(true);
 
-		previousTime = Long.parseLong(lDuration1.getText());
+//		previousTime =  (Long.parseLong(lDuration1.getText().substring(0, 2)) * Globals.MS_PER_HOUR) +
+//						(Long.parseLong(lDuration1.getText().substring(3, 5)) * Globals.MS_PER_MIN) +
+//						(Long.parseLong(lDuration1.getText().substring(6, 8)) * Globals.MS_PER_SEC);
+
+		previousTime = convertToMS(lDuration1.getText());
 		startTimer();
 	}
 
@@ -128,7 +148,6 @@ public class Tracker extends Application {
 		tJob.setText("");
 		tCode.setText("");
 		tDuration.setText("");
-
 		previousTime = 0;
 		setDate();
 	}
@@ -139,9 +158,9 @@ public class Tracker extends Application {
 		tDate.setText(dateFormat.format(date));
 	}
 
-	public void start(Stage myStage) {
-		myStage.setTitle("Tracker");
-		myStage.setResizable(false);
+	public void start(Stage stage) {
+		stage.setTitle("Tracker");
+		stage.setResizable(false);
 
 		Group rootNode = new Group();
 		GridPane gridpane = new GridPane();
@@ -149,7 +168,7 @@ public class Tracker extends Application {
 		gridpane.setHgap(10);
 		gridpane.setVgap(10);
 
-		Scene myScene = new Scene(rootNode, 600, 400);
+		Scene scene = new Scene(rootNode, 600, 400);
 
 		bLoad = new Button("Load log file");
 		GridPane.setHalignment(bLoad, HPos.CENTER);
@@ -336,16 +355,16 @@ public class Tracker extends Application {
 		gridpane3.add(bDelete5, 2, 4);*/
 
 		bContinue.setOnAction(ae -> continueOldJob());
-		bEdit.setOnAction(ae -> editOldJob());
-		bDelete.setOnAction(ae -> deleteOldJob());
+		bEdit.setOnAction(	  ae -> editOldJob());
+		bDelete.setOnAction(  ae -> deleteOldJob());
 
 		rootNode.getChildren().add(gridpane3);
 
 //		GridPane.setHalignment(gridpane3, HPos.CENTER);
 		gridpane.add(gridpane3, 1, 3);
 
-		myStage.setScene(myScene);
-		myStage.show();
+		stage.setScene(scene);
+		stage.show();
 		loadLog();
 		setDate();
 		durTimer = new Timer(500, e -> updateTimer());
@@ -363,6 +382,19 @@ public class Tracker extends Application {
 		lCode3.setText(jobList.get(Globals.CODE + 8));
 		lDate3.setText(jobList.get(Globals.DATE + 8));
 		lDuration3.setText(jobList.get(Globals.DURATION + 8));
+		lProject4.setText(jobList.get(Globals.PROJECT + 12));
+		lCode4.setText(jobList.get(Globals.CODE + 12));
+		lDate4.setText(jobList.get(Globals.DATE + 12));
+		lDuration4.setText(jobList.get(Globals.DURATION + 12));
+		lProject5.setText(jobList.get(Globals.PROJECT + 16));
+		lCode5.setText(jobList.get(Globals.CODE + 16));
+		lDate5.setText(jobList.get(Globals.DATE + 16));
+		lDuration5.setText(jobList.get(Globals.DURATION + 16));
+//		long lblduration = Long.parseLong(jobList.get(Globals.DURATION));
+//		int seconds = (int) lblduration % Globals.SEC_PER_MIN;
+//		int minutes = (int) (lblduration / Globals.SEC_PER_MIN) % Globals.MIN_PER_HOUR;
+//		int hours   = (int) (lblduration / Globals.SEC_PER_HOUR) % Globals.HOUR_PER_DAY;
+//		lDuration1.setText(String.format("%02d:%02d:%02d\n", hours, minutes, seconds));
 	}
 
 	public static void main(String[] args) {
