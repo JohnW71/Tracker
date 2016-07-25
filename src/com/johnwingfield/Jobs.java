@@ -3,10 +3,10 @@ package com.johnwingfield;
 import javafx.beans.property.SimpleStringProperty;
 
 public class Jobs {
-	private SimpleStringProperty project;
-	private SimpleStringProperty code;
-	private SimpleStringProperty date;
-	private SimpleStringProperty duration;
+	private final SimpleStringProperty project;
+	private final SimpleStringProperty code;
+	private final SimpleStringProperty date;
+	private final SimpleStringProperty duration;
 //	private String project;
 //	private String code;
 //	private String date;

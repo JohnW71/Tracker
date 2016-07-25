@@ -4,7 +4,6 @@ import javafx.application.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.*;
-import javafx.geometry.Insets;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -12,11 +11,8 @@ import javafx.stage.*;
 import javafx.scene.layout.*;
 
 import javax.swing.*;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 
 // TODO re-arrange layout to intended look, TableView?
@@ -30,8 +26,8 @@ public class Tracker extends Application {
 	private long startTime = 0;
 	private long previousTime = 0;
 	private long duration = 0;
-//	private String file_name = "C:/Dropbox/Working/Tracker.txt";
-	private String file_name = "Tracker.txt";
+//	private final String file_name = "C:/Dropbox/Working/Tracker.txt";
+	private final String file_name = "Tracker.txt";
 	private Button bLoad, bSave, bStart, bStop, bContinue, bEdit, bDelete, bReset;
 	private TextField tJob, tCode, tDuration, tDate;
 	private Label lProject1, lCode1, lDuration1, lDate1;
@@ -90,16 +86,16 @@ public class Tracker extends Application {
 //			bLoad.setDisable(false);
 //			bSave.setDisable(true);
 
-			try {
+//			try {
 				WriteLog data = new WriteLog(file_name);
 				data.AddToFile( tJob.getText() + "," +
 								tCode.getText() + "," +
 								tDate.getText() +"," +
 								tDuration.getText());
-			}
-			catch (IOException IOe) {
-				System.out.println(IOe.getMessage());
-			}
+//			}
+//			catch (IOException IOe) {
+//				System.out.println(IOe.getMessage());
+//			}
 		}
 	}
 
@@ -248,17 +244,21 @@ public class Tracker extends Application {
 		table.setPrefHeight(300);
 		table.setEditable(true);
 
-		TableColumn projectCol = new TableColumn("Project");
-		projectCol.setCellValueFactory(new PropertyValueFactory<Jobs, String>("project"));
-		TableColumn codeCol = new TableColumn("Code");
-		codeCol.setCellValueFactory(new PropertyValueFactory<Jobs, String>("code"));
-		TableColumn dateCol = new TableColumn("Date");
-		dateCol.setCellValueFactory(new PropertyValueFactory<Jobs, String>("date"));
-		TableColumn durationCol = new TableColumn("Duration");
-		durationCol.setCellValueFactory(new PropertyValueFactory<Jobs, String>("duration"));
+		TableColumn<Jobs, String> projectCol = new TableColumn<>("Project");
+		projectCol.setCellValueFactory(new PropertyValueFactory<>("project"));
+		TableColumn<Jobs, String> codeCol = new TableColumn<>("Code");
+		codeCol.setCellValueFactory(new PropertyValueFactory<>("code"));
+		TableColumn<Jobs, String> dateCol = new TableColumn<>("Date");
+		dateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
+		TableColumn<Jobs, String> durationCol = new TableColumn<>("Duration");
+		durationCol.setCellValueFactory(new PropertyValueFactory<>("duration"));
 
 		table.setItems(dataList);
-		table.getColumns().addAll(projectCol, codeCol, dateCol, durationCol);
+		table.getColumns().add(projectCol);
+		table.getColumns().add(codeCol);
+		table.getColumns().add(dateCol);
+		table.getColumns().add(durationCol);
+//		table.getColumns().addAll(projectCol, codeCol, dateCol, durationCol);
 		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 //		table.getSelectionModel().selectedIndexProperty().addListener(new RowSelectChangeListener());
 
