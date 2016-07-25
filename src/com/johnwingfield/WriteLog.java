@@ -19,7 +19,7 @@ class WriteLog {
 //		append_to_file = true;
 //	}
 	
-	void AddToFile(String textLine) throws IOException {
+	void AddToFile(String textLine) {
 		try (PrintWriter pw = new PrintWriter(new FileWriter(path, true))) {
 			pw.printf("%s" + "%n",textLine);
 		}
