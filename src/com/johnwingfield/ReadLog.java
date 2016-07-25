@@ -3,8 +3,6 @@ package com.johnwingfield;
 import java.io.IOException;
 import java.io.FileReader;
 import java.io.BufferedReader;
-import java.util.ArrayList;
-import java.util.List;
 
 // TODO create file if it doesn't exist
 
@@ -15,7 +13,7 @@ class ReadLog {
 		path = file_path;
 	}
 
-	List<String> OpenFile() throws IOException {
+/*	List<String> OpenFile() throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(path));
 		String line;
 		List<String> values = new ArrayList<>();
@@ -30,9 +28,37 @@ class ReadLog {
 
 		br.close();
 		return values;
+	}*/
+
+	Jobs[] OpenFile(Jobs[] jobs) {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(path));
+			String line;
+			int currentLine = 0;
+
+			while ((line = br.readLine()) != null) {
+				String str[] = line.split(",");
+
+//				jobs[currentLine] = new Jobs();
+//				jobs[currentLine].setProject(str[Globals.PROJECT]);
+//				jobs[currentLine].setCode(str[Globals.CODE]);
+//				jobs[currentLine].setDate(str[Globals.DATE]);
+//				jobs[currentLine].setDuration(str[Globals.DURATION]);
+				jobs[currentLine] = new Jobs(str[Globals.PROJECT], str[Globals.CODE], str[Globals.DATE], str[Globals.DURATION]);
+
+				++currentLine;
+			}
+
+			br.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return jobs;
 	}
 
-/*	private int ReadLines() throws IOException {
+	int CountLines() throws IOException {
 		int numberOfLines = 0;
 		FileReader fr = new FileReader(path);
 		BufferedReader br = new BufferedReader(fr);
@@ -42,5 +68,5 @@ class ReadLog {
 
 		br.close();
 		return numberOfLines;
-	}*/
+	}
 }
