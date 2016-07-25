@@ -1,12 +1,13 @@
 package com.johnwingfield;
 
 import javafx.application.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.*;
 import javafx.geometry.Insets;
 import javafx.scene.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.*;
 import javafx.scene.layout.*;
 
@@ -15,25 +16,28 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 // TODO re-arrange layout to intended look, TableView?
 // TODO change old job list to scrolling list, buttons should only apply to first row
 // TODO what will EDIT actually do? load into current job for update? how to store it? change Edit to Save? TableView?
 // TODO decide how log will be imported and stored in memory, for editing/deleting
 // TODO log file location should detect/default to program location, defaults to top of project folder
+// TODO inline methods that aren't used in multiple areas
 
 public class Tracker extends Application {
 	private long startTime = 0;
 	private long previousTime = 0;
 	private long duration = 0;
-	private String file_name = "C:/Dropbox/Working/Tracker.txt";
+//	private String file_name = "C:/Dropbox/Working/Tracker.txt";
+	private String file_name = "Tracker.txt";
 	private Button bLoad, bSave, bStart, bStop, bContinue, bEdit, bDelete, bReset;
 	private TextField tJob, tCode, tDuration, tDate;
 	private Label lProject1, lCode1, lDuration1, lDate1;
 	private Timer durTimer;
-	private List<String> jobList;
+//	private List<String> jobList;
+	private Jobs[] jobList;
 
 	private long convertToMS(String txtDuration) {
 		return  (Long.parseLong(txtDuration.substring(0, 2)) * Globals.MS_PER_HOUR) +
@@ -55,14 +59,25 @@ public class Tracker extends Application {
 
 		try {
 			ReadLog file = new ReadLog(file_name);
-			jobList = new ArrayList<>(file.OpenFile());
-//			jobList.forEach(System.out::println);
+//			jobList = new ArrayList<>(file.OpenFile());
+////		jobList.forEach(System.out::println);
 
-			for (int i = 0; i < jobList.size(); i += 4) {
-				System.out.println( jobList.get(i + Globals.PROJECT) + " " +
-									jobList.get(i + Globals.CODE) + " " +
-									jobList.get(i + Globals.DATE) + " " +
-									jobList.get(i + Globals.DURATION));
+			int numOfJobs = file.CountLines();
+//System.out.println("num of jobs = " + numOfJobs);
+			jobList = new Jobs[numOfJobs];
+			jobList = file.OpenFile(jobList);
+
+//			for (int i = 0; i < jobList.size(); i += 4) {
+//				System.out.println( jobList.get(i + Globals.PROJECT) + " " +
+//									jobList.get(i + Globals.CODE) + " " +
+//									jobList.get(i + Globals.DATE) + " " +
+//									jobList.get(i + Globals.DURATION));
+
+			for (int i = 0; i < numOfJobs; ++i) {
+				System.out.println( jobList[i].getProject() + ", " +
+									jobList[i].getCode() + ", " +
+									jobList[i].getDate() + ", " +
+									jobList[i].getDuration());
 			}
 		}
 		catch (Exception IOe) {
@@ -159,6 +174,8 @@ public class Tracker extends Application {
 	}
 
 	public void start(Stage stage) {
+		loadLog();
+
 		stage.setTitle("Tracker");
 		stage.setResizable(false);
 
@@ -168,7 +185,7 @@ public class Tracker extends Application {
 		gridpane.setHgap(10);
 		gridpane.setVgap(10);
 
-		Scene scene = new Scene(rootNode, 600, 400);
+		Scene scene = new Scene(rootNode, 600, 450);
 
 		bLoad = new Button("Load log file");
 		GridPane.setHalignment(bLoad, HPos.CENTER);
@@ -222,14 +239,38 @@ public class Tracker extends Application {
 		bStop.setOnAction( ae -> stopTimer());
 		bReset.setOnAction(ae -> resetJob());
 
+		ObservableList<Jobs> dataList = FXCollections.observableArrayList(jobList);
+
+		TableView<Jobs> table = new TableView<>();
+//		table.getItems().clear();
+//		table.getItems().addAll(dataList);
+		table.setPrefWidth(300);
+		table.setPrefHeight(300);
+		table.setEditable(true);
+
+		TableColumn projectCol = new TableColumn("Project");
+		projectCol.setCellValueFactory(new PropertyValueFactory<Jobs, String>("project"));
+		TableColumn codeCol = new TableColumn("Code");
+		codeCol.setCellValueFactory(new PropertyValueFactory<Jobs, String>("code"));
+		TableColumn dateCol = new TableColumn("Date");
+		dateCol.setCellValueFactory(new PropertyValueFactory<Jobs, String>("date"));
+		TableColumn durationCol = new TableColumn("Duration");
+		durationCol.setCellValueFactory(new PropertyValueFactory<Jobs, String>("duration"));
+
+		table.setItems(dataList);
+		table.getColumns().addAll(projectCol, codeCol, dateCol, durationCol);
+		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+//		table.getSelectionModel().selectedIndexProperty().addListener(new RowSelectChangeListener());
+
+		gridpane.add(table, 0, 3);
 		rootNode.getChildren().add(gridpane);
 
-		GridPane gridpane2 = new GridPane();
-		gridpane2.setPadding(new Insets(5));
-		gridpane2.setHgap(10);
-		gridpane2.setVgap(19);
+//		GridPane gridpane2 = new GridPane();
+//		gridpane2.setPadding(new Insets(5));
+//		gridpane2.setHgap(10);
+//		gridpane2.setVgap(19);
 
-		lProject1 = new Label("Project1");
+/*		lProject1 = new Label("Project1");
 		GridPane.setHalignment(lProject1, HPos.CENTER);
 		gridpane2.add(lProject1, 0, 0);
 		lCode1 = new Label("Code1");
@@ -292,12 +333,12 @@ public class Tracker extends Application {
 		gridpane2.add(lDate5, 2, 4);
 		Label lDuration5 = new Label("Duration5");
 		GridPane.setHalignment(lDuration5, HPos.CENTER);
-		gridpane2.add(lDuration5, 3, 4);
+		gridpane2.add(lDuration5, 3, 4);*/
 
-		rootNode.getChildren().add(gridpane2);
+//		rootNode.getChildren().add(gridpane2);
 
 //		GridPane.setHalignment(gridpane2, HPos.CENTER);
-		gridpane.add(gridpane2, 0, 3);
+//		gridpane.add(gridpane2, 0, 3);
 
 		GridPane gridpane3 = new GridPane();
 		gridpane3.setPadding(new Insets(5));
@@ -355,8 +396,8 @@ public class Tracker extends Application {
 		gridpane3.add(bDelete5, 2, 4);*/
 
 		bContinue.setOnAction(ae -> continueOldJob());
-		bEdit.setOnAction(	  ae -> editOldJob());
-		bDelete.setOnAction(  ae -> deleteOldJob());
+		bEdit.setOnAction	 (ae -> editOldJob());
+		bDelete.setOnAction	 (ae -> deleteOldJob());
 
 		rootNode.getChildren().add(gridpane3);
 
@@ -365,31 +406,30 @@ public class Tracker extends Application {
 
 		stage.setScene(scene);
 		stage.show();
-		loadLog();
 		setDate();
 		durTimer = new Timer(500, e -> updateTimer());
 
 		// TODO remove fake labels
-		lProject1.setText(jobList.get(Globals.PROJECT));
-		lCode1.setText(jobList.get(Globals.CODE));
-		lDate1.setText(jobList.get(Globals.DATE));
-		lDuration1.setText(jobList.get(Globals.DURATION));
-		lProject2.setText(jobList.get(Globals.PROJECT + 4));
-		lCode2.setText(jobList.get(Globals.CODE + 4));
-		lDate2.setText(jobList.get(Globals.DATE + 4));
-		lDuration2.setText(jobList.get(Globals.DURATION + 4));
-		lProject3.setText(jobList.get(Globals.PROJECT + 8));
-		lCode3.setText(jobList.get(Globals.CODE + 8));
-		lDate3.setText(jobList.get(Globals.DATE + 8));
-		lDuration3.setText(jobList.get(Globals.DURATION + 8));
-		lProject4.setText(jobList.get(Globals.PROJECT + 12));
-		lCode4.setText(jobList.get(Globals.CODE + 12));
-		lDate4.setText(jobList.get(Globals.DATE + 12));
-		lDuration4.setText(jobList.get(Globals.DURATION + 12));
-		lProject5.setText(jobList.get(Globals.PROJECT + 16));
-		lCode5.setText(jobList.get(Globals.CODE + 16));
-		lDate5.setText(jobList.get(Globals.DATE + 16));
-		lDuration5.setText(jobList.get(Globals.DURATION + 16));
+//		lProject1.setText(jobList.get(Globals.PROJECT));
+//		lCode1.setText(jobList.get(Globals.CODE));
+//		lDate1.setText(jobList.get(Globals.DATE));
+//		lDuration1.setText(jobList.get(Globals.DURATION));
+//		lProject2.setText(jobList.get(Globals.PROJECT + 4));
+//		lCode2.setText(jobList.get(Globals.CODE + 4));
+//		lDate2.setText(jobList.get(Globals.DATE + 4));
+//		lDuration2.setText(jobList.get(Globals.DURATION + 4));
+//		lProject3.setText(jobList.get(Globals.PROJECT + 8));
+//		lCode3.setText(jobList.get(Globals.CODE + 8));
+//		lDate3.setText(jobList.get(Globals.DATE + 8));
+//		lDuration3.setText(jobList.get(Globals.DURATION + 8));
+//		lProject4.setText(jobList.get(Globals.PROJECT + 12));
+//		lCode4.setText(jobList.get(Globals.CODE + 12));
+//		lDate4.setText(jobList.get(Globals.DATE + 12));
+//		lDuration4.setText(jobList.get(Globals.DURATION + 12));
+//		lProject5.setText(jobList.get(Globals.PROJECT + 16));
+//		lCode5.setText(jobList.get(Globals.CODE + 16));
+//		lDate5.setText(jobList.get(Globals.DATE + 16));
+//		lDuration5.setText(jobList.get(Globals.DURATION + 16));
 //		long lblduration = Long.parseLong(jobList.get(Globals.DURATION));
 //		int seconds = (int) lblduration % Globals.SEC_PER_MIN;
 //		int minutes = (int) (lblduration / Globals.SEC_PER_MIN) % Globals.MIN_PER_HOUR;
