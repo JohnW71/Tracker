@@ -1,5 +1,7 @@
 package com.johnwingfield;
 
+import javax.swing.*;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.FileReader;
 import java.io.BufferedReader;
@@ -12,23 +14,6 @@ class ReadLog {
 	ReadLog(String file_path) {
 		path = file_path;
 	}
-
-/*	List<String> OpenFile() throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(path));
-		String line;
-		List<String> values = new ArrayList<>();
-
-		while ((line = br.readLine()) != null) {
-			String str[] = line.split(",");
-			values.add(str[Globals.PROJECT]);
-			values.add(str[Globals.CODE]);
-			values.add(str[Globals.DATE]);
-			values.add(str[Globals.DURATION]);
-		}
-
-		br.close();
-		return values;
-	}*/
 
 	Jobs[] OpenFile(Jobs[] jobs) {
 		try {
@@ -51,6 +36,10 @@ class ReadLog {
 
 			br.close();
 		}
+		catch (FileNotFoundException e) {
+			JOptionPane.showMessageDialog(null, "Tracker.txt file not found", "Name", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
+		}
 		catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -59,9 +48,8 @@ class ReadLog {
 	}
 
 	int CountLines() throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader(path));
 		int numberOfLines = 0;
-		FileReader fr = new FileReader(path);
-		BufferedReader br = new BufferedReader(fr);
 
 		while ((br.readLine()) != null)
 			++numberOfLines;

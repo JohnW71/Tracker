@@ -12,18 +12,20 @@ import javafx.stage.*;
 import javafx.scene.layout.*;
 
 import javax.swing.*;
+import java.io.FileNotFoundException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-// TODO re-arrange layout to intended look, TableView?
-// TODO change old job list to scrolling list, buttons should only apply to first row
-// TODO what will EDIT actually do? load into current job for update? how to store it? change Edit to Save? TableView?
-// TODO decide how log will be imported and stored in memory, for editing/deleting
 // TODO log file location should detect/default to program location, defaults to top of project folder
+// TODO decide how log will be imported and stored in memory, for editing/deleting, DONE?
+// TODO work out usage/flows of buttons
+// TODO work out how to save new data from table to log
+// TODO what will EDIT actually do? load into current job for update? how to store it? change Edit to Save? TableView?
+// TODO remove Load stuff
+// TODO finalise layout
 // TODO inline methods that aren't used in multiple areas
 // TODO fix scopes and all Code Analyzer issues
-// TODO Continue, Edit, Delete should all work on highlighted line
 
 public class Tracker extends Application {
 	private long startTime = 0;
@@ -34,8 +36,20 @@ public class Tracker extends Application {
 	private TextField tJob, tCode, tDuration, tDate;
 	private Timer durTimer;
 	private Jobs[] jobList;
-	private TableView<Jobs> table = new TableView<>();
+	private final TableView<Jobs> table = new TableView<>();
 	private ObservableList<Jobs> dataList;
+
+	private void enable() {
+		bContinue.setDisable(false);
+		bEdit.setDisable(false);
+		bDelete.setDisable(false);
+	}
+
+	private void disable() {
+		bContinue.setDisable(true);
+		bEdit.setDisable(true);
+		bDelete.setDisable(true);
+	}
 
 	private long convertToMS(String txtDuration) {
 		return  (Long.parseLong(txtDuration.substring(0, 2)) * Globals.MS_PER_HOUR) +
@@ -57,19 +71,10 @@ public class Tracker extends Application {
 
 		try {
 			ReadLog file = new ReadLog(file_name);
-//			jobList = new ArrayList<>(file.OpenFile());
-////		jobList.forEach(System.out::println);
-
 			int numOfJobs = file.CountLines();
 
 			jobList = new Jobs[numOfJobs];
 			jobList = file.OpenFile(jobList);
-
-//			for (int i = 0; i < jobList.size(); i += 4) {
-//				System.out.println( jobList.get(i + Globals.PROJECT) + " " +
-//									jobList.get(i + Globals.CODE) + " " +
-//									jobList.get(i + Globals.DATE) + " " +
-//									jobList.get(i + Globals.DURATION));
 
 			for (int i = 0; i < numOfJobs; ++i) {
 				System.out.println( jobList[i].getProject() + ", " +
@@ -77,6 +82,10 @@ public class Tracker extends Application {
 									jobList[i].getDate() + ", " +
 									jobList[i].getDuration());
 			}
+		}
+		catch (FileNotFoundException e) {
+			JOptionPane.showMessageDialog(null, "Tracker.txt file not found", "Name", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
 		}
 		catch (Exception IOe) {
 			System.out.println(IOe.getMessage());
@@ -113,7 +122,8 @@ public class Tracker extends Application {
 	private void stopTimer() {
 		bStart.setDisable(false);
 		bStop.setDisable(true);
-		bContinue.setDisable(false);
+//		bContinue.setDisable(false);
+		disable();
 
 		durTimer.stop();
 		previousTime = duration * Globals.MS_PER_SEC;
@@ -134,7 +144,7 @@ public class Tracker extends Application {
 	private void editOldJob() {
 		System.out.println("In progress");
 
-		Jobs job = table.getSelectionModel().getSelectedItem();
+//		Jobs job = table.getSelectionModel().getSelectedItem();
 	}
 
 	private void deleteOldJob() {
@@ -255,17 +265,11 @@ public class Tracker extends Application {
 		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
 		table.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
-//System.out.println("obs = " + obs + "\nold = " + oldSelection + "\nnew = " + newSelection);
-
 			if (table.getSelectionModel().getSelectedItem() != null) {
-				bContinue.setDisable(false);
-				bEdit.setDisable(false);
-				bDelete.setDisable(false);
+				enable();
 			}
 			else {
-				bContinue.setDisable(true);
-				bEdit.setDisable(true);
-				bDelete.setDisable(true);
+				disable();
 			}
 		});
 
@@ -305,17 +309,14 @@ public class Tracker extends Application {
 		bContinue = new Button("Continue");
 		GridPane.setHalignment(bContinue, HPos.CENTER);
 		gridpane3.add(bContinue, 0, 0);
-		bContinue.setDisable(true);
 
 		bEdit = new Button("Edit");
 		GridPane.setHalignment(bEdit, HPos.CENTER);
 		gridpane3.add(bEdit, 1, 0);
-		bEdit.setDisable(true);
 
 		bDelete = new Button("Delete");
 		GridPane.setHalignment(bDelete, HPos.CENTER);
 		gridpane3.add(bDelete, 2, 0);
-		bDelete.setDisable(true);
 
 		bContinue.setOnAction(ae -> continueOldJob());
 		bEdit.setOnAction	 (ae -> editOldJob());
@@ -329,6 +330,7 @@ public class Tracker extends Application {
 		stage.setScene(scene);
 		stage.show();
 		setDate();
+		disable();
 		durTimer = new Timer(500, e -> updateTimer());
 	}
 
