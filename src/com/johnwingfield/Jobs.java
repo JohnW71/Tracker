@@ -2,7 +2,7 @@ package com.johnwingfield;
 
 import javafx.beans.property.SimpleStringProperty;
 
-public class Jobs {
+public class Jobs { // this is Public to allow the ObservableArrayList to view Jobs' data
 	private final SimpleStringProperty project;
 	private final SimpleStringProperty code;
 	private final SimpleStringProperty date;
