@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.FileReader;
 import java.io.BufferedReader;
 
-// TODO create file if it doesn't exist
-
 class ReadLog {
 	private final String path;
 

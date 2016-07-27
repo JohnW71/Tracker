@@ -4,8 +4,6 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
 
-// TODO create file if it doesn't exist
-
 class WriteLog {
 	private final String path;
 //	private boolean append_to_file = false;
