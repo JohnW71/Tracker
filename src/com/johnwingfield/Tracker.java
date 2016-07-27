@@ -12,19 +12,25 @@ import javafx.stage.*;
 import javafx.scene.layout.*;
 
 import javax.swing.*;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 // TODO log file location should detect/default to program location, defaults to top of project folder
-// TODO decide how log will be imported and stored in memory, for editing/deleting, DONE?
 // TODO work out usage/flows of buttons
 // TODO work out how to save new data from table to log
+// TODO save in date order
+// TODO any new data should be shown in the table
 // TODO what will EDIT actually do? load into current job for update? how to store it? change Edit to Save? TableView?
-// TODO remove Load stuff
-// TODO finalise layout
+// TODO edit directly in table
+// TODO allow for manually changing the current duration and continue from it
+// TODO remove Load/Save stuff
+// TODO finalize layout
 // TODO inline methods that aren't used in multiple areas
+// TODO basic reporting
 // TODO fix scopes and all Code Analyzer issues
 
 public class Tracker extends Application {
@@ -66,8 +72,18 @@ public class Tracker extends Application {
 	}
 
 	private void loadLog() {
-//		bLoad.setDisable(true);
-//		bSave.setDisable(false);
+		bLoad.setDisable(true);
+		bSave.setDisable(false);
+
+		File f = new File(file_name);
+
+		if (!f.exists()) {
+			try {
+				f.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 
 		try {
 			ReadLog file = new ReadLog(file_name);
@@ -94,8 +110,8 @@ public class Tracker extends Application {
 
 	private void saveLog() {
 		if (tJob.getText().length() > 0) {
-//			bLoad.setDisable(false);
-//			bSave.setDisable(true);
+			bLoad.setDisable(false);
+			bSave.setDisable(true);
 
 			WriteLog data = new WriteLog(file_name);
 			data.AddToFile( tJob.getText() + "," +
@@ -122,7 +138,6 @@ public class Tracker extends Application {
 	private void stopTimer() {
 		bStart.setDisable(false);
 		bStop.setDisable(true);
-//		bContinue.setDisable(false);
 		disable();
 
 		durTimer.stop();
@@ -173,8 +188,6 @@ public class Tracker extends Application {
 	}
 
 	public void start(Stage stage) {
-		loadLog();
-
 		stage.setTitle("Tracker");
 		stage.setResizable(false);
 
@@ -193,7 +206,9 @@ public class Tracker extends Application {
 		bSave = new Button("Save project/code");
 		GridPane.setHalignment(bSave, HPos.CENTER);
 		gridpane.add(bSave, 1, 0);
-//		bSave.setDisable(true);
+		bSave.setDisable(true);
+
+		loadLog();
 
 		bReset = new Button("Reset");
 		GridPane.setHalignment(bReset, HPos.CENTER);
@@ -241,8 +256,6 @@ public class Tracker extends Application {
 		dataList = FXCollections.observableArrayList(jobList);
 
 //		TableView<Jobs> table = new TableView<>();
-//		table.getItems().clear();
-//		table.getItems().addAll(dataList);
 		table.setPrefWidth(300);
 		table.setPrefHeight(300);
 		table.setEditable(true);
@@ -261,7 +274,6 @@ public class Tracker extends Application {
 		table.getColumns().add(codeCol);
 		table.getColumns().add(dateCol);
 		table.getColumns().add(durationCol);
-//		table.getColumns().addAll(projectCol, codeCol, dateCol, durationCol);
 		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
 		table.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
