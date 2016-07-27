@@ -76,6 +76,7 @@ public class Tracker extends Application {
 
 		if (!f.exists()) {
 			try {
+				//noinspection ResultOfMethodCallIgnored
 				f.createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -147,8 +148,7 @@ public class Tracker extends Application {
 	}
 
 	private void updateTimer() {
-		long currentTime = System.currentTimeMillis();
-		duration = ((currentTime - startTime) + previousTime) / Globals.MS_PER_SEC;
+		duration = ((System.currentTimeMillis() - startTime) + previousTime) / Globals.MS_PER_SEC;
 		tDuration.setText(convertToStr(duration));
 	}
 
@@ -177,8 +177,7 @@ public class Tracker extends Application {
 	}
 
 	private void deleteOldJob() {
-		Jobs delJob = table.getSelectionModel().getSelectedItem();
-		dataList.remove(delJob);
+		dataList.remove(table.getSelectionModel().getSelectedItem());
 		writeLog();
 	}
 
@@ -196,8 +195,7 @@ public class Tracker extends Application {
 
 	private void setDate() {
 		DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
-		Date date = new Date();
-		tDate.setText(dateFormat.format(date));
+		tDate.setText(dateFormat.format(new Date()));
 	}
 
 	public void start(Stage stage) {
@@ -207,58 +205,58 @@ public class Tracker extends Application {
 		stage.setResizable(false);
 
 		Group rootNode = new Group();
-		GridPane gridpane = new GridPane();
-		gridpane.setPadding(new Insets(5));
-		gridpane.setHgap(10);
-		gridpane.setVgap(10);
+		GridPane gridPane = new GridPane();
+		gridPane.setPadding(new Insets(5));
+		gridPane.setHgap(10);
+		gridPane.setVgap(10);
 
 		Scene scene = new Scene(rootNode, 600, 450);
 
 		bLoad = new Button("Load log file");
 		GridPane.setHalignment(bLoad, HPos.CENTER);
-		gridpane.add(bLoad, 0, 0);
+		gridPane.add(bLoad, 0, 0);
 
 		bSave = new Button("Save project/code");
 		GridPane.setHalignment(bSave, HPos.CENTER);
-		gridpane.add(bSave, 1, 0);
+		gridPane.add(bSave, 1, 0);
 //		bSave.setDisable(true);
 
 		bReset = new Button("Reset");
 		GridPane.setHalignment(bReset, HPos.CENTER);
-		gridpane.add(bReset, 2, 0);
+		gridPane.add(bReset, 2, 0);
 
 		bStart = new Button("Start timer");
 		GridPane.setHalignment(bStart, HPos.CENTER);
-		gridpane.add(bStart, 0, 1);
+		gridPane.add(bStart, 0, 1);
 
 		tDuration = new TextField();
 		tDuration.setPromptText("00:00:00");
 		tDuration.setPrefColumnCount(8);
 		GridPane.setHalignment(tDuration, HPos.CENTER);
-		gridpane.add(tDuration, 1, 1);
+		gridPane.add(tDuration, 1, 1);
 
 		bStop = new Button("Stop timer");
 		GridPane.setHalignment(bStop, HPos.CENTER);
-		gridpane.add(bStop, 2, 1);
+		gridPane.add(bStop, 2, 1);
 		bStop.setDisable(true);
 
 		tJob = new TextField();
 		tJob.setPromptText("project");
 		tJob.setPrefColumnCount(15);
 		GridPane.setHalignment(tJob, HPos.CENTER);
-		gridpane.add(tJob, 0, 2);
+		gridPane.add(tJob, 0, 2);
 
 		tCode = new TextField();
 		tCode.setPromptText("code");
 		tCode.setPrefColumnCount(15);
 		GridPane.setHalignment(tCode, HPos.CENTER);
-		gridpane.add(tCode, 1, 2);
+		gridPane.add(tCode, 1, 2);
 
 		tDate = new TextField();
 		tDate.setPromptText("ddmmyy");
 		tDate.setPrefColumnCount(6);
 		GridPane.setHalignment(tDate, HPos.CENTER);
-		gridpane.add(tDate, 2, 2);
+		gridPane.add(tDate, 2, 2);
 
 		bLoad.setOnAction( ae -> loadLog());
 		bSave.setOnAction( ae -> saveLog());
@@ -332,44 +330,44 @@ public class Tracker extends Application {
 			return row;
 		});
 
-		gridpane.add(table, 0, 3);
-		rootNode.getChildren().add(gridpane);
+		gridPane.add(table, 0, 3);
+		rootNode.getChildren().add(gridPane);
 
-//		GridPane gridpane2 = new GridPane();
-//		gridpane2.setPadding(new Insets(5));
-//		gridpane2.setHgap(10);
-//		gridpane2.setVgap(19);
+//		GridPane gridPane2 = new GridPane();
+//		gridPane2.setPadding(new Insets(5));
+//		gridPane2.setHgap(10);
+//		gridPane2.setVgap(19);
 
-//		rootNode.getChildren().add(gridpane2);
+//		rootNode.getChildren().add(gridPane2);
 
-//		GridPane.setHalignment(gridpane2, HPos.CENTER);
-//		gridpane.add(gridpane2, 0, 3);
+//		GridPane.setHalignment(gridPane2, HPos.CENTER);
+//		gridPane.add(gridPane2, 0, 3);
 
-		GridPane gridpane3 = new GridPane();
-		gridpane3.setPadding(new Insets(5));
-		gridpane3.setHgap(10);
-		gridpane3.setVgap(10);
+		GridPane gridPane3 = new GridPane();
+		gridPane3.setPadding(new Insets(5));
+		gridPane3.setHgap(10);
+		gridPane3.setVgap(10);
 
 		bContinue = new Button("Continue");
 		GridPane.setHalignment(bContinue, HPos.CENTER);
-		gridpane3.add(bContinue, 0, 0);
+		gridPane3.add(bContinue, 0, 0);
 
 		bEdit = new Button("Edit");
 		GridPane.setHalignment(bEdit, HPos.CENTER);
-		gridpane3.add(bEdit, 1, 0);
+		gridPane3.add(bEdit, 1, 0);
 
 		bDelete = new Button("Delete");
 		GridPane.setHalignment(bDelete, HPos.CENTER);
-		gridpane3.add(bDelete, 2, 0);
+		gridPane3.add(bDelete, 2, 0);
 
 		bContinue.setOnAction(ae -> continueOldJob());
 		bEdit.setOnAction	 (ae -> editOldJob());
 		bDelete.setOnAction	 (ae -> deleteOldJob());
 
-		rootNode.getChildren().add(gridpane3);
+		rootNode.getChildren().add(gridPane3);
 
-//		GridPane.setHalignment(gridpane3, HPos.CENTER);
-		gridpane.add(gridpane3, 1, 3);
+//		GridPane.setHalignment(gridPane3, HPos.CENTER);
+		gridPane.add(gridPane3, 1, 3);
 
 		stage.setScene(scene);
 		stage.show();
