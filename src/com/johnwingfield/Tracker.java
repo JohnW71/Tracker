@@ -13,19 +13,16 @@ import javafx.stage.*;
 import javafx.scene.layout.*;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 // TODO log file location should detect/default to program location, defaults to top of project folder
 // TODO work out usage/flows of buttons
-// TODO work out how to save new data from table to log
 // TODO save in date order
 // TODO what will EDIT actually do? load into current job for update? how to store it? change Edit to Save? TableView?
-// TODO edit directly in table
+// TODO edit directly in table, also when changing focus
 // TODO allow for manually changing the current duration and continue from it
 // TODO remove Load/Save stuff
 // TODO basic reporting
@@ -113,20 +110,31 @@ public class Tracker extends Application {
 //			bLoad.setDisable(false);
 //			bSave.setDisable(true);
 
-			WriteLog data = new WriteLog(file_name);
-			data.AddToFile( tJob.getText() + "," +
-							tCode.getText() + "," +
-							tDate.getText() +"," +
-							tDuration.getText());
+//			WriteLog data = new WriteLog(file_name);
+//			data.AddToFile( tJob.getText() + "," +
+//							tCode.getText() + "," +
+//							tDate.getText() +"," +
+//							tDuration.getText());
 
 			dataList.add(new Jobs(tJob.getText(),
 								  tCode.getText(),
 								  tDate.getText(),
 								  tDuration.getText()));
-//			tJob.clear();
-//			tCode.clear();
-//			tDate.clear();
-//			tDuration.clear();
+
+			writeLog();
+		}
+	}
+
+	private void writeLog() {
+		try (FileWriter writer = new FileWriter(file_name)) {
+			for (Jobs job : dataList) {
+				writer.write(job.getProject() + "," +
+							 job.getCode() + "," +
+							 job.getDate() + "," +
+							 job.getDuration() + "\n");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -148,7 +156,6 @@ public class Tracker extends Application {
 		bStart.setDisable(false);
 		bStop.setDisable(true);
 		disable();
-
 		durTimer.stop();
 		previousTime = duration * Globals.MS_PER_SEC;
 	}
@@ -160,22 +167,19 @@ public class Tracker extends Application {
 		tJob.setText(job.getProject());
 		tCode.setText(job.getCode());
 		tDate.setText(job.getDate());
-		previousTime = convertToMS(job.getDuration());
 
+		previousTime = convertToMS(job.getDuration());
 		startTimer();
 	}
 
 	private void editOldJob() {
-		System.out.println("In progress");
-
-//		Jobs job = table.getSelectionModel().getSelectedItem();
+		System.out.println("TODO");
 	}
 
 	private void deleteOldJob() {
-		System.out.println("In progress");
-
-		Jobs job = table.getSelectionModel().getSelectedItem();
-		dataList.remove(job);
+		Jobs delJob = table.getSelectionModel().getSelectedItem();
+		dataList.remove(delJob);
+		writeLog();
 	}
 
 	private void resetJob() {

@@ -1,4 +1,4 @@
-package com.johnwingfield;
+/*package com.johnwingfield;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -26,3 +26,4 @@ class WriteLog {
 		}
 	}
 }
+*/
