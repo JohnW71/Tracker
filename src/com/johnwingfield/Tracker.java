@@ -7,6 +7,7 @@ import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.*;
 import javafx.scene.layout.*;
@@ -23,14 +24,13 @@ import java.util.Date;
 // TODO work out usage/flows of buttons
 // TODO work out how to save new data from table to log
 // TODO save in date order
-// TODO any new data should be shown in the table
 // TODO what will EDIT actually do? load into current job for update? how to store it? change Edit to Save? TableView?
 // TODO edit directly in table
 // TODO allow for manually changing the current duration and continue from it
 // TODO remove Load/Save stuff
+// TODO basic reporting
 // TODO finalize layout
 // TODO inline methods that aren't used in multiple areas
-// TODO basic reporting
 // TODO fix scopes and all Code Analyzer issues
 
 public class Tracker extends Application {
@@ -72,8 +72,8 @@ public class Tracker extends Application {
 	}
 
 	private void loadLog() {
-		bLoad.setDisable(true);
-		bSave.setDisable(false);
+//		bLoad.setDisable(true);
+//		bSave.setDisable(false);
 
 		File f = new File(file_name);
 
@@ -110,14 +110,23 @@ public class Tracker extends Application {
 
 	private void saveLog() {
 		if (tJob.getText().length() > 0) {
-			bLoad.setDisable(false);
-			bSave.setDisable(true);
+//			bLoad.setDisable(false);
+//			bSave.setDisable(true);
 
 			WriteLog data = new WriteLog(file_name);
 			data.AddToFile( tJob.getText() + "," +
 							tCode.getText() + "," +
 							tDate.getText() +"," +
 							tDuration.getText());
+
+			dataList.add(new Jobs(tJob.getText(),
+								  tCode.getText(),
+								  tDate.getText(),
+								  tDuration.getText()));
+//			tJob.clear();
+//			tCode.clear();
+//			tDate.clear();
+//			tDuration.clear();
 		}
 	}
 
@@ -174,9 +183,9 @@ public class Tracker extends Application {
 			stopTimer();
 		}
 
-		tJob.setText("");
-		tCode.setText("");
-		tDuration.setText("");
+		tJob.clear();
+		tCode.clear();
+		tDuration.clear();
 		previousTime = 0;
 		setDate();
 	}
@@ -188,6 +197,8 @@ public class Tracker extends Application {
 	}
 
 	public void start(Stage stage) {
+		loadLog();
+
 		stage.setTitle("Tracker");
 		stage.setResizable(false);
 
@@ -206,9 +217,7 @@ public class Tracker extends Application {
 		bSave = new Button("Save project/code");
 		GridPane.setHalignment(bSave, HPos.CENTER);
 		gridpane.add(bSave, 1, 0);
-		bSave.setDisable(true);
-
-		loadLog();
+//		bSave.setDisable(true);
 
 		bReset = new Button("Reset");
 		GridPane.setHalignment(bReset, HPos.CENTER);
@@ -255,19 +264,38 @@ public class Tracker extends Application {
 
 		dataList = FXCollections.observableArrayList(jobList);
 
-//		TableView<Jobs> table = new TableView<>();
 		table.setPrefWidth(300);
 		table.setPrefHeight(300);
 		table.setEditable(true);
 
 		TableColumn<Jobs, String> projectCol = new TableColumn<>("Project");
 		projectCol.setCellValueFactory(new PropertyValueFactory<>("project"));
+		projectCol.setCellFactory(TextFieldTableCell.forTableColumn());
+		projectCol.setOnEditCommit(
+			t -> t.getTableView().getItems().get(t.getTablePosition().getRow()).setProject(t.getNewValue())
+		);
+
 		TableColumn<Jobs, String> codeCol = new TableColumn<>("Code");
 		codeCol.setCellValueFactory(new PropertyValueFactory<>("code"));
+		codeCol.setCellFactory(TextFieldTableCell.forTableColumn());
+		codeCol.setOnEditCommit(
+			t -> t.getTableView().getItems().get(t.getTablePosition().getRow()).setCode(t.getNewValue())
+		);
+
 		TableColumn<Jobs, String> dateCol = new TableColumn<>("Date");
 		dateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
+		dateCol.setSortType(TableColumn.SortType.DESCENDING);
+		dateCol.setCellFactory(TextFieldTableCell.forTableColumn());
+		dateCol.setOnEditCommit(
+			t -> t.getTableView().getItems().get(t.getTablePosition().getRow()).setDate(t.getNewValue())
+		);
+
 		TableColumn<Jobs, String> durationCol = new TableColumn<>("Duration");
 		durationCol.setCellValueFactory(new PropertyValueFactory<>("duration"));
+		durationCol.setCellFactory(TextFieldTableCell.forTableColumn());
+		durationCol.setOnEditCommit(
+			t -> t.getTableView().getItems().get(t.getTablePosition().getRow()).setDuration(t.getNewValue())
+		);
 
 		table.setItems(dataList);
 		table.getColumns().add(projectCol); // added separately to avoid unchecked generics error
