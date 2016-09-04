@@ -18,18 +18,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-// TODO log file location should detect/default to program location, defaults to top of project folder
-// TODO work out usage/flows of buttons
-// TODO save in date order
-// TODO what will EDIT actually do? load into current job for update? how to store it? change Edit to Save? TableView?
-// TODO edit directly in table, also when changing focus
-// TODO allow for manually changing the current duration and continue from it
-// TODO remove Load/Save stuff
-// TODO basic reporting
-// TODO finalize layout
-// TODO inline methods that aren't used in multiple areas
-// TODO fix scopes and all Code Analyzer issues
-
 public class Tracker extends Application {
 	private long startTime = 0;
 	private long previousTime = 0;
