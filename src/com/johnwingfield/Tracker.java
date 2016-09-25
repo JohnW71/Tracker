@@ -22,7 +22,7 @@ public class Tracker extends Application {
 	private long startTime = 0;
 	private long previousTime = 0;
 	private long duration = 0;
-	private final String file_name = "Tracker.txt";
+	private final String fileName = "Tracker.txt";
 	private Button bLoad, bSave, bStart, bStop, bContinue, bEdit, bDelete, bReset;
 	private TextField tJob, tCode, tDuration, tDate;
 	private Timer durTimer;
@@ -30,13 +30,13 @@ public class Tracker extends Application {
 	private final TableView<Jobs> table = new TableView<>();
 	private ObservableList<Jobs> dataList;
 
-	private void enable() {
+	private void enableButtons() {
 		bContinue.setDisable(false);
 		bEdit.setDisable(false);
 		bDelete.setDisable(false);
 	}
 
-	private void disable() {
+	private void disableButtons() {
 		bContinue.setDisable(true);
 		bEdit.setDisable(true);
 		bDelete.setDisable(true);
@@ -60,7 +60,7 @@ public class Tracker extends Application {
 //		bLoad.setDisable(true);
 //		bSave.setDisable(false);
 
-		File f = new File(file_name);
+		File f = new File(fileName);
 
 		if (!f.exists()) {
 			try {
@@ -72,7 +72,7 @@ public class Tracker extends Application {
 		}
 
 		try {
-			ReadLog file = new ReadLog(file_name);
+			ReadLog file = new ReadLog(fileName);
 			int numOfJobs = file.CountLines();
 
 			jobList = new Jobs[numOfJobs];
@@ -99,7 +99,7 @@ public class Tracker extends Application {
 //			bLoad.setDisable(false);
 //			bSave.setDisable(true);
 
-//			WriteLog data = new WriteLog(file_name);
+//			WriteLog data = new WriteLog(fileName);
 //			data.AddToFile( tJob.getText() + "," +
 //							tCode.getText() + "," +
 //							tDate.getText() +"," +
@@ -115,7 +115,7 @@ public class Tracker extends Application {
 	}
 
 	private void writeLog() {
-		try (FileWriter writer = new FileWriter(file_name)) {
+		try (FileWriter writer = new FileWriter(fileName)) {
 			for (Jobs job : dataList) {
 				writer.write(job.getProject() + "," +
 							 job.getCode() + "," +
@@ -143,20 +143,34 @@ public class Tracker extends Application {
 	private void stopTimer() {
 		bStart.setDisable(false);
 		bStop.setDisable(true);
-		disable();
+		disableButtons();
 		durTimer.stop();
 		previousTime = duration * Globals.MS_PER_SEC;
 	}
 
 	private void continueOldJob() {
+		String currentDate, oldDate;
+
 		bContinue.setDisable(true);
 
 		Jobs job = table.getSelectionModel().getSelectedItem();
 		tJob.setText(job.getProject());
 		tCode.setText(job.getCode());
-		tDate.setText(job.getDate());
 
-		previousTime = convertToMS(job.getDuration());
+		// compare chosen job's date against current date. Continue will use current date if it's newer
+		DateFormat dateFormat = new SimpleDateFormat("yyMMdd");
+		currentDate = dateFormat.format(new Date());
+		oldDate = job.getDate();
+		oldDate = oldDate.substring(6, 8) + oldDate.substring(3, 5) + oldDate.substring(0,2);
+
+		if (Integer.parseInt(currentDate) > Integer.parseInt(oldDate)) {
+			setDate();
+		}
+		else {
+			tDate.setText(job.getDate());
+			previousTime = convertToMS(job.getDuration());
+		}
+
 		startTimer();
 	}
 
@@ -198,7 +212,7 @@ public class Tracker extends Application {
 		gridPane.setHgap(10);
 		gridPane.setVgap(10);
 
-		Scene scene = new Scene(rootNode, 600, 450);
+		Scene scene = new Scene(rootNode, 650, 450);
 
 		bLoad = new Button("Load log file");
 		GridPane.setHalignment(bLoad, HPos.CENTER);
@@ -296,10 +310,10 @@ public class Tracker extends Application {
 
 		table.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
 			if (table.getSelectionModel().getSelectedItem() != null) {
-				enable();
+				enableButtons();
 			}
 			else {
-				disable();
+				disableButtons();
 			}
 		});
 
@@ -360,7 +374,7 @@ public class Tracker extends Application {
 		stage.setScene(scene);
 		stage.show();
 		setDate();
-		disable();
+		disableButtons();
 		durTimer = new Timer(500, e -> updateTimer());
 	}
 
