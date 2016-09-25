@@ -9,8 +9,8 @@ import java.io.BufferedReader;
 class ReadLog {
 	private final String path;
 
-	ReadLog(String file_path) {
-		path = file_path;
+	ReadLog(String filePath) {
+		path = filePath;
 	}
 
 	Jobs[] OpenFile(Jobs[] jobs) {
