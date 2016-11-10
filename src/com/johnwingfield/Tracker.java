@@ -18,6 +18,13 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+// TODO log file location should detect/default to program location, defaults to top of project folder
+// TODO save in date order
+// TODO edit directly in table, also when changing focus
+// TODO allow for manually changing the current duration and continue from it
+// TODO remove Load/Save stuff
+// TODO basic reporting
+
 public class Tracker extends Application {
 	private long startTime = 0;
 	private long previousTime = 0;
@@ -79,10 +86,10 @@ public class Tracker extends Application {
 			jobList = file.OpenFile(jobList);
 
 			for (int i = 0; i < numOfJobs; ++i) {
-				System.out.println( jobList[i].getProject() + ", " +
-									jobList[i].getCode() + ", " +
-									jobList[i].getDate() + ", " +
-									jobList[i].getDuration());
+				System.out.println(jobList[i].getProject() + ", " +
+								   jobList[i].getCode() + ", " +
+								   jobList[i].getDate() + ", " +
+								   jobList[i].getDuration());
 			}
 		}
 		catch (FileNotFoundException e) {
@@ -105,6 +112,7 @@ public class Tracker extends Application {
 //							tDate.getText() +"," +
 //							tDuration.getText());
 
+			// TODO should error check these first
 			dataList.add(new Jobs(tJob.getText(),
 								  tCode.getText(),
 								  tDate.getText(),
@@ -203,7 +211,7 @@ public class Tracker extends Application {
 	public void start(Stage stage) {
 		loadLog();
 
-		stage.setTitle("Tracker");
+		stage.setTitle("Tracker v1.0");
 		stage.setResizable(false);
 
 		Group rootNode = new Group();
@@ -375,7 +383,7 @@ public class Tracker extends Application {
 		stage.show();
 		setDate();
 		disableButtons();
-		durTimer = new Timer(500, e -> updateTimer());
+		durTimer = new Timer(500, e -> updateTimer()); // 500ms delay, what for?
 	}
 
 	public static void main(String[] args) {
