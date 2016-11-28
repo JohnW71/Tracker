@@ -66,6 +66,7 @@ public class Tracker extends Application {
 	private void loadLog() {
 //		bLoad.setDisable(true);
 //		bSave.setDisable(false);
+		System.out.println("Load log file");
 
 		File f = new File(fileName);
 
@@ -102,24 +103,37 @@ public class Tracker extends Application {
 	}
 
 	private void saveLog() {
-		if (tJob.getText().length() > 0) {
-//			bLoad.setDisable(false);
-//			bSave.setDisable(true);
+		System.out.println("Save log file");
 
-//			WriteLog data = new WriteLog(fileName);
-//			data.AddToFile( tJob.getText() + "," +
-//							tCode.getText() + "," +
-//							tDate.getText() +"," +
-//							tDuration.getText());
-
-			// TODO should error check these first
-			dataList.add(new Jobs(tJob.getText(),
-								  tCode.getText(),
-								  tDate.getText(),
-								  tDuration.getText()));
-
-			writeLog();
+		if (tJob.getText().length() == 0) {
+			tJob.requestFocus();
+			return;
 		}
+
+		if (tCode.getText().length() == 0) {
+			tCode.requestFocus();
+			return;
+		}
+
+//		bLoad.setDisable(false);
+//		bSave.setDisable(true);
+
+//		WriteLog data = new WriteLog(fileName);
+//		data.AddToFile( tJob.getText() + "," +
+//						tCode.getText() + "," +
+//						tDate.getText() +"," +
+//						tDuration.getText());
+
+		if (tDuration.getText().length() == 0) {
+			tDuration.setText("00:00:00");
+		}
+
+		dataList.add(new Jobs(tJob.getText(),
+							  tCode.getText(),
+							  tDate.getText(),
+							  tDuration.getText()));
+
+		writeLog();
 	}
 
 	private void writeLog() {
