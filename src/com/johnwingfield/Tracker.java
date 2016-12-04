@@ -18,14 +18,19 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-// TODO log file location should detect/default to program location, defaults to top of project folder
-// TODO save in date order
-// TODO edit directly in table, also when changing focus
-// TODO allow for manually changing the current duration and continue from it
-// TODO remove Load/Save stuff
-// TODO basic reporting
+//TODO allow for manually changing the current duration and continue from it
+//TODO edit directly in table, also when changing focus
+//TODO save in date order
+//TODO remove Load/Save stuff
+//TODO finalise GUI
+//TODO basic reporting
 
-public class Tracker extends Application {
+/**
+ * Project based time tracking
+ *
+ * @author John Wingfield
+ *
+ */public class Tracker extends Application {
 	private long startTime = 0;
 	private long previousTime = 0;
 	private long duration = 0;
@@ -118,12 +123,6 @@ public class Tracker extends Application {
 //		bLoad.setDisable(false);
 //		bSave.setDisable(true);
 
-//		WriteLog data = new WriteLog(fileName);
-//		data.AddToFile( tJob.getText() + "," +
-//						tCode.getText() + "," +
-//						tDate.getText() +"," +
-//						tDuration.getText());
-
 		if (tDuration.getText().length() == 0) {
 			tDuration.setText("00:00:00");
 		}
@@ -185,10 +184,11 @@ public class Tracker extends Application {
 		oldDate = job.getDate();
 		oldDate = oldDate.substring(6, 8) + oldDate.substring(3, 5) + oldDate.substring(0,2);
 
-		if (Integer.parseInt(currentDate) > Integer.parseInt(oldDate)) {
+		if (Integer.parseInt(currentDate) > Integer.parseInt(oldDate)) { // continued job is older than today
+			previousTime = 0;
 			setDate();
 		}
-		else {
+		else { // job is continued from earlier today
 			tDate.setText(job.getDate());
 			previousTime = convertToMS(job.getDuration());
 		}
@@ -225,7 +225,7 @@ public class Tracker extends Application {
 	public void start(Stage stage) {
 		loadLog();
 
-		stage.setTitle("Tracker v1.0");
+		stage.setTitle("Tracker v1.0 - John Wingfield");
 		stage.setResizable(false);
 
 		Group rootNode = new Group();
@@ -397,7 +397,8 @@ public class Tracker extends Application {
 		stage.show();
 		setDate();
 		disableButtons();
-		durTimer = new Timer(500, e -> updateTimer()); // 500ms delay, what for?
+
+		durTimer = new Timer(500, e -> updateTimer()); // update timer every .5 seconds
 	}
 
 	public static void main(String[] args) {
