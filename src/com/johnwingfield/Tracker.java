@@ -18,8 +18,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-//TODO allow for manually changing the current duration and continue from it
-//TODO edit directly in table, also when changing focus
+//TODO edit directly in table works, also when changing focus?
 //TODO save in date order
 //TODO remove Load/Save stuff
 //TODO finalise GUI
@@ -153,6 +152,11 @@ import java.util.Date;
 		bStop.setDisable(false);
 
 		startTime = System.currentTimeMillis();
+
+		if (!tDuration.getText().isEmpty()) {
+			previousTime = convertToMS(tDuration.getText());
+		}
+
 		durTimer.start();
 	}
 
@@ -186,9 +190,11 @@ import java.util.Date;
 
 		if (Integer.parseInt(currentDate) > Integer.parseInt(oldDate)) { // continued job is older than today
 			previousTime = 0;
+			tDuration.setText("00:00:00");
 			setDate();
 		}
 		else { // job is continued from earlier today
+			tDuration.setText(job.getDuration());
 			tDate.setText(job.getDate());
 			previousTime = convertToMS(job.getDuration());
 		}
@@ -399,6 +405,10 @@ import java.util.Date;
 		disableButtons();
 
 		durTimer = new Timer(500, e -> updateTimer()); // update timer every .5 seconds
+
+//		tDuration.textProperty().addListener((observable, oldValue, newValue) -> {
+//			System.out.println("textfield changed from " + oldValue + " to " + newValue);
+//		});
 	}
 
 	public static void main(String[] args) {
