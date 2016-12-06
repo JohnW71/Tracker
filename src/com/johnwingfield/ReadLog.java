@@ -6,6 +6,11 @@ import java.io.IOException;
 import java.io.FileReader;
 import java.io.BufferedReader;
 
+/**
+ * Create ReadLog class and its methods
+ *
+ * @author John Wingfield
+ */
 class ReadLog {
 	private final String path;
 
@@ -13,6 +18,12 @@ class ReadLog {
 		path = filePath;
 	}
 
+	/**
+	 * Open the Tracker.txt file and read job details in jobs[]
+	 *
+	 * @param jobs array of Jobs[]
+	 * @return Jobs[]
+	 */
 	Jobs[] OpenFile(Jobs[] jobs) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(path));
@@ -45,6 +56,12 @@ class ReadLog {
 		return jobs;
 	}
 
+	/**
+	 * Count lines in Tracker.txt file so Jobs[] can be created at correct size
+	 *
+	 * @return int
+	 * @throws IOException maybe should be in try-catch?
+	 */
 	int CountLines() throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(path));
 		int numberOfLines = 0;

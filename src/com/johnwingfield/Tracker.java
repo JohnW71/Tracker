@@ -29,36 +29,55 @@ import java.util.Date;
  *
  * @author John Wingfield
  *
- */public class Tracker extends Application {
+ */
+public class Tracker extends Application {
 	private long startTime = 0;
 	private long previousTime = 0;
 	private long duration = 0;
 	private final String fileName = "Tracker.txt";
-	private Button bLoad, bSave, bStart, bStop, bContinue, bEdit, bDelete, bReset;
+	private Button bLoad, bSave, bStart, bStop, bContinue, bDelete, bReset; // bEdit,
 	private TextField tJob, tCode, tDuration, tDate;
 	private Timer durTimer;
 	private Jobs[] jobList;
 	private final TableView<Jobs> table = new TableView<>();
 	private ObservableList<Jobs> dataList;
 
+	/**
+	 * Enable the previous job buttons
+	 */
 	private void enableButtons() {
 		bContinue.setDisable(false);
-		bEdit.setDisable(false);
+//		bEdit.setDisable(false);
 		bDelete.setDisable(false);
 	}
 
+	/**
+	 * Disable the previous job buttons
+	 */
 	private void disableButtons() {
 		bContinue.setDisable(true);
-		bEdit.setDisable(true);
+//		bEdit.setDisable(true);
 		bDelete.setDisable(true);
 	}
 
+	/**
+	 * Convert duration string to milliseconds
+	 *
+	 * @param txtDuration eg. "08:30:00" to 293472386123
+	 * @return Long
+	 */
 	private long convertToMS(String txtDuration) {
 		return  (Long.parseLong(txtDuration.substring(0, 2)) * Globals.MS_PER_HOUR) +
 				(Long.parseLong(txtDuration.substring(3, 5)) * Globals.MS_PER_MIN) +
 				(Long.parseLong(txtDuration.substring(6, 8)) * Globals.MS_PER_SEC);
 	}
 
+	/**
+	 * Convert duration in milliseconds to string
+	 *
+	 * @param msDuration eg. 12837127312 to "08:30:00"
+	 * @return String
+	 */
 	private String convertToStr(long msDuration) {
 		int seconds = (int) msDuration % Globals.SEC_PER_MIN;
 		int minutes = (int) (msDuration / Globals.SEC_PER_MIN) % Globals.MIN_PER_HOUR;
@@ -67,6 +86,9 @@ import java.util.Date;
 		return(String.format("%02d:%02d:%02d\n", hours, minutes, seconds));
 	}
 
+	/**
+	 * Loads Tracker.txt file from current location into jobList
+	 */
 	private void loadLog() {
 //		bLoad.setDisable(true);
 //		bSave.setDisable(false);
@@ -106,6 +128,9 @@ import java.util.Date;
 		}
 	}
 
+	/**
+	 * Saves current job info to Tracker.txt file
+	 */
 	private void saveLog() {
 		System.out.println("Save log file");
 
@@ -134,6 +159,9 @@ import java.util.Date;
 		writeLog();
 	}
 
+	/**
+	 * Saves current dataList to Tracker.txt file
+	 */
 	private void writeLog() {
 		try (FileWriter writer = new FileWriter(fileName)) {
 			for (Jobs job : dataList) {
@@ -147,6 +175,9 @@ import java.util.Date;
 		}
 	}
 
+	/**
+	 * Starts the timer from current system time
+	 */
 	private void startTimer() {
 		bStart.setDisable(true);
 		bStop.setDisable(false);
@@ -160,11 +191,17 @@ import java.util.Date;
 		durTimer.start();
 	}
 
+	/**
+	 * Updates duration textfield with current duration
+	 */
 	private void updateTimer() {
 		duration = ((System.currentTimeMillis() - startTime) + previousTime) / Globals.MS_PER_SEC;
 		tDuration.setText(convertToStr(duration));
 	}
 
+	/**
+	 * Stops the timer
+	 */
 	private void stopTimer() {
 		bStart.setDisable(false);
 		bStop.setDisable(true);
@@ -173,6 +210,9 @@ import java.util.Date;
 		previousTime = duration * Globals.MS_PER_SEC;
 	}
 
+	/**
+	 * Gets selected previous job and starts timer. If job was from before today timer starts at 0, otherwise it continues.
+	 */
 	private void continueOldJob() {
 		String currentDate, oldDate;
 
@@ -202,15 +242,21 @@ import java.util.Date;
 		startTimer();
 	}
 
-	private void editOldJob() {
-		System.out.println("TODO");
-	}
+//	private void editOldJob() {
+//		System.out.println("TBD");
+//	}
 
+	/**
+	 * Removes selected job from dataList
+	 */
 	private void deleteOldJob() {
 		dataList.remove(table.getSelectionModel().getSelectedItem());
 		writeLog();
 	}
 
+	/**
+	 * Stops timer and resets all current job details
+	 */
 	private void resetJob() {
 		if (durTimer.isRunning()) {
 			stopTimer();
@@ -223,11 +269,18 @@ import java.util.Date;
 		setDate();
 	}
 
+	/**
+	 * Sets current date in textfield in correct format
+	 */
 	private void setDate() {
 		DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
 		tDate.setText(dateFormat.format(new Date()));
 	}
 
+	/**
+	 * Build grid layouts, table setup and handle actions
+	 * @param stage default
+	 */
 	public void start(Stage stage) {
 		loadLog();
 
@@ -382,16 +435,16 @@ import java.util.Date;
 		GridPane.setHalignment(bContinue, HPos.CENTER);
 		gridPane3.add(bContinue, 0, 0);
 
-		bEdit = new Button("Edit");
-		GridPane.setHalignment(bEdit, HPos.CENTER);
-		gridPane3.add(bEdit, 1, 0);
+//		bEdit = new Button("Edit");
+//		GridPane.setHalignment(bEdit, HPos.CENTER);
+//		gridPane3.add(bEdit, 1, 0);
 
 		bDelete = new Button("Delete");
 		GridPane.setHalignment(bDelete, HPos.CENTER);
 		gridPane3.add(bDelete, 2, 0);
 
 		bContinue.setOnAction(ae -> continueOldJob());
-		bEdit.setOnAction	 (ae -> editOldJob());
+//		bEdit.setOnAction	 (ae -> editOldJob());
 		bDelete.setOnAction	 (ae -> deleteOldJob());
 
 		rootNode.getChildren().add(gridPane3);
