@@ -2,6 +2,11 @@ package com.johnwingfield;
 
 import javafx.beans.property.SimpleStringProperty;
 
+/**
+ * Create Jobs class and its properties
+ *
+ * @author John Wingfield
+ */
 public class Jobs { // this is Public to allow the ObservableArrayList to view Jobs' data
 	private final SimpleStringProperty project;
 	private final SimpleStringProperty code;

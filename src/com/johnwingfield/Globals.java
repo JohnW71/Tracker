@@ -1,5 +1,10 @@
 package com.johnwingfield;
 
+/**
+ * Create Globals class
+ *
+ * @author John Wingfield
+ */
 class Globals {
 	static final int PROJECT = 0;
 	static final int CODE = 1;
