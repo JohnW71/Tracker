@@ -18,9 +18,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+//TODO merge multiple entries for current day
 //TODO edit directly in table works, also when changing focus?
 //TODO save in date order
-//TODO remove Load/Save stuff
+//TODO remove Load stuff
 //TODO finalise GUI
 //TODO basic reporting
 
@@ -41,24 +42,6 @@ public class Tracker extends Application {
 	private Jobs[] jobList;
 	private final TableView<Jobs> table = new TableView<>();
 	private ObservableList<Jobs> dataList;
-
-	/**
-	 * Enable the previous job buttons
-	 */
-	private void enableButtons() {
-		bContinue.setDisable(false);
-//		bEdit.setDisable(false);
-		bDelete.setDisable(false);
-	}
-
-	/**
-	 * Disable the previous job buttons
-	 */
-	private void disableButtons() {
-		bContinue.setDisable(true);
-//		bEdit.setDisable(true);
-		bDelete.setDisable(true);
-	}
 
 	/**
 	 * Convert duration string to milliseconds
@@ -90,8 +73,6 @@ public class Tracker extends Application {
 	 * Loads Tracker.txt file from current location into jobList
 	 */
 	private void loadLog() {
-//		bLoad.setDisable(true);
-//		bSave.setDisable(false);
 		System.out.println("Load log file");
 
 		File f = new File(fileName);
@@ -144,9 +125,6 @@ public class Tracker extends Application {
 			return;
 		}
 
-//		bLoad.setDisable(false);
-//		bSave.setDisable(true);
-
 		if (tDuration.getText().length() == 0) {
 			tDuration.setText("00:00:00");
 		}
@@ -157,6 +135,8 @@ public class Tracker extends Application {
 							  tDuration.getText()));
 
 		writeLog();
+
+		bSave.setDisable(true);
 	}
 
 	/**
@@ -181,6 +161,7 @@ public class Tracker extends Application {
 	private void startTimer() {
 		bStart.setDisable(true);
 		bStop.setDisable(false);
+		bReset.setDisable(false);
 
 		startTime = System.currentTimeMillis();
 
@@ -205,7 +186,10 @@ public class Tracker extends Application {
 	private void stopTimer() {
 		bStart.setDisable(false);
 		bStop.setDisable(true);
-		disableButtons();
+		bSave.setDisable(false);
+		bContinue.setDisable(true);
+//		bEdit.setDisable(true);
+		bDelete.setDisable(true);
 		durTimer.stop();
 		previousTime = duration * Globals.MS_PER_SEC;
 	}
@@ -267,6 +251,9 @@ public class Tracker extends Application {
 		tDuration.clear();
 		previousTime = 0;
 		setDate();
+
+		bReset.setDisable(true);
+		bSave.setDisable(true);
 	}
 
 	/**
@@ -302,11 +289,12 @@ public class Tracker extends Application {
 		bSave = new Button("Save project/code");
 		GridPane.setHalignment(bSave, HPos.CENTER);
 		gridPane.add(bSave, 1, 0);
-//		bSave.setDisable(true);
+		bSave.setDisable(true);
 
 		bReset = new Button("Reset");
 		GridPane.setHalignment(bReset, HPos.CENTER);
 		gridPane.add(bReset, 2, 0);
+		bReset.setDisable(true);
 
 		bStart = new Button("Start timer");
 		GridPane.setHalignment(bStart, HPos.CENTER);
@@ -391,10 +379,14 @@ public class Tracker extends Application {
 
 		table.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
 			if (table.getSelectionModel().getSelectedItem() != null) {
-				enableButtons();
+				bContinue.setDisable(false);
+//				bEdit.setDisable(false);
+				bDelete.setDisable(false);
 			}
 			else {
-				disableButtons();
+				bContinue.setDisable(true);
+//				bEdit.setDisable(true);
+				bDelete.setDisable(true);
 			}
 		});
 
@@ -455,7 +447,10 @@ public class Tracker extends Application {
 		stage.setScene(scene);
 		stage.show();
 		setDate();
-		disableButtons();
+
+		bContinue.setDisable(true);
+//		bEdit.setDisable(true);
+		bDelete.setDisable(true);
 
 		durTimer = new Timer(500, e -> updateTimer()); // update timer every .5 seconds
 
