@@ -16,14 +16,13 @@ import javax.swing.*;
 import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 
-//TODO merge multiple entries for current day
-//TODO edit directly in table works, also when changing focus?
-//TODO save in date order
-//TODO remove Load stuff
+//TODO fully test editing cells, also when changing focus
+//TODO edits are not saved
+//TODO basic reporting?
 //TODO finalise GUI
-//TODO basic reporting
 
 /**
  * Project based time tracking
@@ -36,7 +35,7 @@ public class Tracker extends Application {
 	private long previousTime = 0;
 	private long duration = 0;
 	private final String fileName = "Tracker.txt";
-	private Button bLoad, bSave, bStart, bStop, bContinue, bDelete, bReset; // bEdit,
+	private Button bSave, bStart, bStop, bContinue, bDelete, bReset; // bLoad, bEdit,
 	private TextField tJob, tCode, tDuration, tDate;
 	private Timer durTimer;
 	private Jobs[] jobList;
@@ -73,8 +72,6 @@ public class Tracker extends Application {
 	 * Loads Tracker.txt file from current location into jobList
 	 */
 	private void loadLog() {
-		System.out.println("Load log file");
-
 		File f = new File(fileName);
 
 		if (!f.exists()) {
@@ -93,12 +90,12 @@ public class Tracker extends Application {
 			jobList = new Jobs[numOfJobs];
 			jobList = file.OpenFile(jobList);
 
-			for (int i = 0; i < numOfJobs; ++i) {
-				System.out.println(jobList[i].getProject() + ", " +
-								   jobList[i].getCode() + ", " +
-								   jobList[i].getDate() + ", " +
-								   jobList[i].getDuration());
-			}
+//			for (int i = 0; i < numOfJobs; ++i) {
+//				System.out.println(jobList[i].getProject() + ", " +
+//								   jobList[i].getCode() + ", " +
+//								   jobList[i].getDate() + ", " +
+//								   jobList[i].getDuration());
+//			}
 		}
 		catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(null, "Tracker.txt file not found", "Name", JOptionPane.ERROR_MESSAGE);
@@ -110,11 +107,9 @@ public class Tracker extends Application {
 	}
 
 	/**
-	 * Saves current job info to Tracker.txt file
+	 * Saves current job info to dataList, removing any continued jobs from same day
 	 */
 	private void saveLog() {
-		System.out.println("Save log file");
-
 		if (tJob.getText().length() == 0) {
 			tJob.requestFocus();
 			return;
@@ -127,6 +122,15 @@ public class Tracker extends Application {
 
 		if (tDuration.getText().length() == 0) {
 			tDuration.setText("00:00:00");
+		}
+
+		for (Jobs job : dataList) {
+			if ((job.getProject().equals(tJob.getText())) &&
+				(job.getCode().equals(tCode.getText())) &&
+				(job.getDate().equals(tDate.getText()))) {
+					dataList.remove(job);
+					break;
+				}
 		}
 
 		dataList.add(new Jobs(tJob.getText(),
@@ -265,6 +269,19 @@ public class Tracker extends Application {
 	}
 
 	/**
+	 * Compare dates by YYMMDD for table sort
+	 * @author John Wingfield
+	 */
+	public class DateComparator implements Comparator<String> {
+		public int compare(String s1, String s2) {
+			int i1 = Integer.parseInt(s1.substring(6, 8) + s1.substring(3, 5) + s1.substring(0,2));
+			int i2 = Integer.parseInt(s2.substring(6, 8) + s2.substring(3, 5) + s2.substring(0,2));
+//			System.out.println("i1 = " + i1 + " i2 = " + i2 + " = " + (i1 < i2 ? -1 : i1 == i2 ? 0 : 1));
+			return i1 < i2 ? -1 : i1 == i2 ? 0 : 1;
+		}
+	}
+
+	/**
 	 * Build grid layouts, table setup and handle actions
 	 * @param stage default
 	 */
@@ -282,9 +299,9 @@ public class Tracker extends Application {
 
 		Scene scene = new Scene(rootNode, 650, 450);
 
-		bLoad = new Button("Load log file");
-		GridPane.setHalignment(bLoad, HPos.CENTER);
-		gridPane.add(bLoad, 0, 0);
+//		bLoad = new Button("Load log file");
+//		GridPane.setHalignment(bLoad, HPos.CENTER);
+//		gridPane.add(bLoad, 0, 0);
 
 		bSave = new Button("Save project/code");
 		GridPane.setHalignment(bSave, HPos.CENTER);
@@ -329,10 +346,10 @@ public class Tracker extends Application {
 		GridPane.setHalignment(tDate, HPos.CENTER);
 		gridPane.add(tDate, 2, 2);
 
-		bLoad.setOnAction( ae -> loadLog());
-		bSave.setOnAction( ae -> saveLog());
+//		bLoad.setOnAction(ae -> loadLog());
+		bSave.setOnAction(ae -> saveLog());
 		bStart.setOnAction(ae -> startTimer());
-		bStop.setOnAction( ae -> stopTimer());
+		bStop.setOnAction(ae -> stopTimer());
 		bReset.setOnAction(ae -> resetJob());
 
 		dataList = FXCollections.observableArrayList(jobList);
@@ -357,7 +374,8 @@ public class Tracker extends Application {
 
 		TableColumn<Jobs, String> dateCol = new TableColumn<>("Date");
 		dateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
-		dateCol.setSortType(TableColumn.SortType.DESCENDING);
+		dateCol.setSortType(TableColumn.SortType.ASCENDING);
+		dateCol.setComparator(new DateComparator());
 		dateCol.setCellFactory(TextFieldTableCell.forTableColumn());
 		dateCol.setOnEditCommit(
 			t -> t.getTableView().getItems().get(t.getTablePosition().getRow()).setDate(t.getNewValue())
@@ -375,6 +393,7 @@ public class Tracker extends Application {
 		table.getColumns().add(codeCol);
 		table.getColumns().add(dateCol);
 		table.getColumns().add(durationCol);
+		table.getSortOrder().add(dateCol);
 		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
 		table.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
@@ -436,8 +455,8 @@ public class Tracker extends Application {
 		gridPane3.add(bDelete, 2, 0);
 
 		bContinue.setOnAction(ae -> continueOldJob());
-//		bEdit.setOnAction	 (ae -> editOldJob());
-		bDelete.setOnAction	 (ae -> deleteOldJob());
+//		bEdit.setOnAction(ae -> editOldJob());
+		bDelete.setOnAction(ae -> deleteOldJob());
 
 		rootNode.getChildren().add(gridPane3);
 
@@ -453,10 +472,6 @@ public class Tracker extends Application {
 		bDelete.setDisable(true);
 
 		durTimer = new Timer(500, e -> updateTimer()); // update timer every .5 seconds
-
-//		tDuration.textProperty().addListener((observable, oldValue, newValue) -> {
-//			System.out.println("textfield changed from " + oldValue + " to " + newValue);
-//		});
 	}
 
 	public static void main(String[] args) {
