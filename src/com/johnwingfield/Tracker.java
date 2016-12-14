@@ -19,11 +19,6 @@ import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 
-//TODO fully test editing cells, also when changing focus
-//TODO edits are not saved
-//TODO basic reporting?
-//TODO finalise GUI
-
 /**
  * Project based time tracking
  *
@@ -34,13 +29,13 @@ public class Tracker extends Application {
 	private long startTime = 0;
 	private long previousTime = 0;
 	private long duration = 0;
-	private final String fileName = "Tracker.txt";
-	private Button bSave, bStart, bStop, bContinue, bDelete, bReset; // bLoad, bEdit,
+	private static final String fileName = "Tracker.txt";
+	private Button bSave, bStart, bStop, bContinue, bDelete, bReset;
 	private TextField tJob, tCode, tDuration, tDate;
 	private Timer durTimer;
 	private Jobs[] jobList;
 	private final TableView<Jobs> table = new TableView<>();
-	private ObservableList<Jobs> dataList;
+	private static ObservableList<Jobs> dataList;
 
 	/**
 	 * Convert duration string to milliseconds
@@ -146,7 +141,7 @@ public class Tracker extends Application {
 	/**
 	 * Saves current dataList to Tracker.txt file
 	 */
-	private void writeLog() {
+	private static void writeLog() {
 		try (FileWriter writer = new FileWriter(fileName)) {
 			for (Jobs job : dataList) {
 				writer.write(job.getProject() + "," +
@@ -229,10 +224,6 @@ public class Tracker extends Application {
 
 		startTimer();
 	}
-
-//	private void editOldJob() {
-//		System.out.println("TBD");
-//	}
 
 	/**
 	 * Removes selected job from dataList
@@ -475,6 +466,13 @@ public class Tracker extends Application {
 	}
 
 	public static void main(String[] args) {
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run() {
+//				System.out.println("Shutting down");
+				writeLog();
+			}
+		});
+
 		launch(args);
 	}
 }
