@@ -17,4 +17,5 @@ class Globals {
 	static final int MIN_PER_HOUR = 60;
 	static final int SEC_PER_HOUR = 3600;
 	static final int HOUR_PER_DAY = 24;
+	static final String fileName = "Tracker.txt";
 }

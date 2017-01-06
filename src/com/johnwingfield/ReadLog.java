@@ -1,10 +1,10 @@
 package com.johnwingfield;
 
 import javax.swing.*;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 
 /**
  * Create ReadLog class and its methods
@@ -12,12 +12,6 @@ import java.io.BufferedReader;
  * @author John Wingfield
  */
 class ReadLog {
-	private final String path;
-
-	ReadLog(String filePath) {
-		path = filePath;
-	}
-
 	/**
 	 * Open the Tracker.txt file and read job details in jobs[]
 	 *
@@ -26,7 +20,7 @@ class ReadLog {
 	 */
 	Jobs[] OpenFile(Jobs[] jobs) {
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(path));
+			BufferedReader br = new BufferedReader(new FileReader(Globals.fileName));
 			String line;
 			int currentLine = 0;
 
@@ -63,7 +57,7 @@ class ReadLog {
 	 * @throws IOException maybe should be in try-catch?
 	 */
 	int CountLines() throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(path));
+		BufferedReader br = new BufferedReader(new FileReader(Globals.fileName));
 		int numberOfLines = 0;
 
 		while ((br.readLine()) != null)
