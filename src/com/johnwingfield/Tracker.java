@@ -1,23 +1,30 @@
 package com.johnwingfield;
 
-import javafx.application.*;
+import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.*;
-import javafx.scene.*;
+import javafx.geometry.HPos;
+import javafx.geometry.Insets;
+import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.MouseEvent;
-import javafx.stage.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 
 import javax.swing.*;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Project based time tracking
@@ -26,16 +33,17 @@ import java.util.Date;
  *
  */
 public class Tracker extends Application {
-	private long startTime = 0;
-	private long previousTime = 0;
-	private long duration = 0;
-	private static final String fileName = "Tracker.txt";
-	private Button bSave, bStart, bStop, bContinue, bDelete, bReset;
-	private TextField tJob, tCode, tDuration, tDate;
-	private Timer durTimer;
 	private Jobs[] jobList;
 	private final TableView<Jobs> table = new TableView<>();
 	private static ObservableList<Jobs> dataList;
+	private static long startTime = 0;
+	private static long previousTime = 0;
+	private static long duration = 0;
+	private static boolean isRunning = false;
+	private static Button bSave, bStart, bStop, bContinue, bDelete, bReset;
+	private static TextField tJob, tCode, tDuration, tDate;
+	private static final DurTimerTask durTask = new DurTimerTask();
+	private static final Timer durTimer = new Timer(true);
 
 	/**
 	 * Convert duration string to milliseconds
@@ -55,7 +63,7 @@ public class Tracker extends Application {
 	 * @param msDuration eg. 12837127312 to "08:30:00"
 	 * @return String
 	 */
-	private String convertToStr(long msDuration) {
+	private static String convertToStr(long msDuration) {
 		int seconds = (int) msDuration % Globals.SEC_PER_MIN;
 		int minutes = (int) (msDuration / Globals.SEC_PER_MIN) % Globals.MIN_PER_HOUR;
 		int hours   = (int) (msDuration / Globals.SEC_PER_HOUR) % Globals.HOUR_PER_DAY;
@@ -67,7 +75,7 @@ public class Tracker extends Application {
 	 * Loads Tracker.txt file from current location into jobList
 	 */
 	private void loadLog() {
-		File f = new File(fileName);
+		File f = new File(Globals.fileName);
 
 		if (!f.exists()) {
 			try {
@@ -79,7 +87,7 @@ public class Tracker extends Application {
 		}
 
 		try {
-			ReadLog file = new ReadLog(fileName);
+			ReadLog file = new ReadLog();
 			int numOfJobs = file.CountLines();
 
 			jobList = new Jobs[numOfJobs];
@@ -142,13 +150,18 @@ public class Tracker extends Application {
 	 * Saves current dataList to Tracker.txt file
 	 */
 	private static void writeLog() {
-		try (FileWriter writer = new FileWriter(fileName)) {
+		try (FileWriter writer = new FileWriter(Globals.fileName)) {
 			for (Jobs job : dataList) {
 				writer.write(job.getProject() + "," +
 							 job.getCode() + "," +
 							 job.getDate() + "," +
 							 job.getDuration() + "\n");
 			}
+
+//			if (bStart.isDisabled()) { // job is running
+////				writer.write("*" + tJob.getText() + "," + tCode.getText() +  "," + tDate.getText() +  "," + tDuration.getText() + "\n");
+//				System.out.println("wrote in progress job");
+//			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -163,20 +176,13 @@ public class Tracker extends Application {
 		bReset.setDisable(false);
 
 		startTime = System.currentTimeMillis();
+		isRunning = true;
 
 		if (!tDuration.getText().isEmpty()) {
 			previousTime = convertToMS(tDuration.getText());
 		}
 
-		durTimer.start();
-	}
-
-	/**
-	 * Updates duration textfield with current duration
-	 */
-	private void updateTimer() {
-		duration = ((System.currentTimeMillis() - startTime) + previousTime) / Globals.MS_PER_SEC;
-		tDuration.setText(convertToStr(duration));
+		bStop.requestFocus();
 	}
 
 	/**
@@ -187,10 +193,12 @@ public class Tracker extends Application {
 		bStop.setDisable(true);
 		bSave.setDisable(false);
 		bContinue.setDisable(true);
-//		bEdit.setDisable(true);
 		bDelete.setDisable(true);
-		durTimer.stop();
+
+		isRunning = false;
 		previousTime = duration * Globals.MS_PER_SEC;
+
+		bSave.requestFocus();
 	}
 
 	/**
@@ -237,14 +245,13 @@ public class Tracker extends Application {
 	 * Stops timer and resets all current job details
 	 */
 	private void resetJob() {
-		if (durTimer.isRunning()) {
-			stopTimer();
-		}
-
 		tJob.clear();
 		tCode.clear();
 		tDuration.clear();
+
 		previousTime = 0;
+
+		stopTimer();
 		setDate();
 
 		bReset.setDisable(true);
@@ -261,7 +268,6 @@ public class Tracker extends Application {
 
 	/**
 	 * Compare dates by YYMMDD for table sort
-	 * @author John Wingfield
 	 */
 	public class DateComparator implements Comparator<String> {
 		public int compare(String s1, String s2) {
@@ -337,7 +343,6 @@ public class Tracker extends Application {
 		GridPane.setHalignment(tDate, HPos.CENTER);
 		gridPane.add(tDate, 2, 2);
 
-//		bLoad.setOnAction(ae -> loadLog());
 		bSave.setOnAction(ae -> saveLog());
 		bStart.setOnAction(ae -> startTimer());
 		bStop.setOnAction(ae -> stopTimer());
@@ -390,12 +395,10 @@ public class Tracker extends Application {
 		table.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
 			if (table.getSelectionModel().getSelectedItem() != null) {
 				bContinue.setDisable(false);
-//				bEdit.setDisable(false);
 				bDelete.setDisable(false);
 			}
 			else {
 				bContinue.setDisable(true);
-//				bEdit.setDisable(true);
 				bDelete.setDisable(true);
 			}
 		});
@@ -459,19 +462,27 @@ public class Tracker extends Application {
 		setDate();
 
 		bContinue.setDisable(true);
-//		bEdit.setDisable(true);
 		bDelete.setDisable(true);
+	}
 
-		durTimer = new Timer(500, e -> updateTimer()); // update timer every .5 seconds
+	static class DurTimerTask extends TimerTask {
+		public void run() {
+			if (isRunning) { // Update duration textfield with current duration
+				duration = ((System.currentTimeMillis() - startTime) + previousTime) / Globals.MS_PER_SEC;
+				tDuration.setText(convertToStr(duration));
+			}
+		}
 	}
 
 	public static void main(String[] args) {
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-//				System.out.println("Shutting down");
-				writeLog();
-			}
-		});
+		durTimer.schedule(durTask, 500, 500); // start delay, update delay
+
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+//			System.out.println("Shutting down");
+			durTimer.cancel();
+			writeLog();
+		}));
+
 
 		launch(args);
 	}
