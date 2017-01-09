@@ -92,13 +92,6 @@ public class Tracker extends Application {
 
 			jobList = new Jobs[numOfJobs];
 			jobList = file.OpenFile(jobList);
-
-//			for (int i = 0; i < numOfJobs; ++i) {
-//				System.out.println(jobList[i].getProject() + ", " +
-//								   jobList[i].getCode() + ", " +
-//								   jobList[i].getDate() + ", " +
-//								   jobList[i].getDuration());
-//			}
 		}
 		catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(null, "Tracker.txt file not found", "Name", JOptionPane.ERROR_MESSAGE);
@@ -128,7 +121,13 @@ public class Tracker extends Application {
 		}
 
 		for (Jobs job : dataList) {
-			if ((job.getProject().equals(tJob.getText())) &&
+			// check for * and remove it so it can match and overwrite
+			String projectName = job.getProject();
+			if (projectName.startsWith("*")) {
+				projectName = projectName.substring(1);
+			}
+
+			if ((projectName.equals(tJob.getText())) &&
 				(job.getCode().equals(tCode.getText())) &&
 				(job.getDate().equals(tDate.getText()))) {
 					dataList.remove(job);
@@ -158,10 +157,10 @@ public class Tracker extends Application {
 							 job.getDuration() + "\n");
 			}
 
-//			if (bStart.isDisabled()) { // job is running
-////				writer.write("*" + tJob.getText() + "," + tCode.getText() +  "," + tDate.getText() +  "," + tDuration.getText() + "\n");
+			if (!tDuration.getText().isEmpty()) {
+				writer.write("*" + tJob.getText() + "," + tCode.getText() +  "," + tDate.getText() +  "," + tDuration.getText() + "\n");
 //				System.out.println("wrote in progress job");
-//			}
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -183,6 +182,7 @@ public class Tracker extends Application {
 		}
 
 		bStop.requestFocus();
+		table.getSelectionModel().clearSelection();
 	}
 
 	/**
@@ -226,7 +226,7 @@ public class Tracker extends Application {
 		}
 		else { // job is continued from earlier today
 			tDuration.setText(job.getDuration());
-			tDate.setText(job.getDate());
+			setDate();
 			previousTime = convertToMS(job.getDuration());
 		}
 
@@ -238,6 +238,7 @@ public class Tracker extends Application {
 	 */
 	private void deleteOldJob() {
 		dataList.remove(table.getSelectionModel().getSelectedItem());
+		table.getSelectionModel().clearSelection();
 		writeLog();
 	}
 
@@ -248,7 +249,6 @@ public class Tracker extends Application {
 		tJob.clear();
 		tCode.clear();
 		tDuration.clear();
-
 		previousTime = 0;
 
 		stopTimer();
@@ -463,6 +463,35 @@ public class Tracker extends Application {
 
 		bContinue.setDisable(true);
 		bDelete.setDisable(true);
+
+		if (jobList[jobList.length - 1].getProject().startsWith("*")) {
+			table.getSelectionModel().select(jobList.length - 1);
+			Jobs job = table.getSelectionModel().getSelectedItem();
+
+			String currentDate, oldDate;
+			DateFormat dateFormat = new SimpleDateFormat("yyMMdd");
+			currentDate = dateFormat.format(new Date());
+			oldDate = job.getDate();
+			oldDate = oldDate.substring(6, 8) + oldDate.substring(3, 5) + oldDate.substring(0,2);
+
+			if (Integer.parseInt(currentDate) > Integer.parseInt(oldDate)) { // saved job is older than today
+				job.setProject(job.getProject().substring(1));
+				writeLog();
+			}
+			else { // job is saved from earlier today
+				tJob.setText(job.getProject().substring(1));
+				tCode.setText(job.getCode());
+				tDuration.setText(job.getDuration());
+				setDate();
+				previousTime = convertToMS(job.getDuration());
+
+				dataList.remove(table.getSelectionModel().getSelectedItem());
+				bReset.setDisable(false);
+				bSave.setDisable(false);
+			}
+
+			table.getSelectionModel().clearSelection();
+		}
 	}
 
 	static class DurTimerTask extends TimerTask {
@@ -474,15 +503,22 @@ public class Tracker extends Application {
 		}
 	}
 
+//	private void showList() {
+//		for (int i = 0; i < jobList.length; ++i) {
+//			System.out.println(jobList[i].getProject() + ", " +
+//					jobList[i].getCode() + ", " +
+//					jobList[i].getDate() + ", " +
+//					jobList[i].getDuration());
+//		}
+//	}
+
 	public static void main(String[] args) {
 		durTimer.schedule(durTask, 500, 500); // start delay, update delay
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-//			System.out.println("Shutting down");
 			durTimer.cancel();
 			writeLog();
 		}));
-
 
 		launch(args);
 	}
