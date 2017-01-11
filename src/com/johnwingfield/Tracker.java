@@ -140,9 +140,8 @@ public class Tracker extends Application {
 							  tDate.getText(),
 							  tDuration.getText()));
 
+		resetJob();
 		writeLog();
-
-		bSave.setDisable(true);
 	}
 
 	/**
@@ -250,6 +249,7 @@ public class Tracker extends Application {
 		tCode.clear();
 		tDuration.clear();
 		previousTime = 0;
+		duration = 0;
 
 		stopTimer();
 		setDate();
