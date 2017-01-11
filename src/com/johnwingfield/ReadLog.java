@@ -40,7 +40,7 @@ class ReadLog {
 			br.close();
 		}
 		catch (FileNotFoundException e) {
-			JOptionPane.showMessageDialog(null, "Tracker.txt file not found", "Name", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Tracker.txt file not found", "OpenFile()", JOptionPane.ERROR_MESSAGE);
 			System.exit(1);
 		}
 		catch (IOException e) {

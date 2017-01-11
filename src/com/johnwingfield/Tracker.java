@@ -82,7 +82,9 @@ public class Tracker extends Application {
 				//noinspection ResultOfMethodCallIgnored
 				f.createNewFile();
 			} catch (IOException e) {
-				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Unable to create Tracker.txt", "LoadLog()", JOptionPane.ERROR_MESSAGE);
+				System.exit(1);
+//				e.printStackTrace();
 			}
 		}
 
@@ -93,12 +95,12 @@ public class Tracker extends Application {
 			jobList = new Jobs[numOfJobs];
 			jobList = file.OpenFile(jobList);
 		}
-		catch (FileNotFoundException e) {
-			JOptionPane.showMessageDialog(null, "Tracker.txt file not found", "Name", JOptionPane.ERROR_MESSAGE);
+		catch (FileNotFoundException e) { // file should already have been created if not found
+			JOptionPane.showMessageDialog(null, "Tracker.txt file not found", "LoadLog()", JOptionPane.ERROR_MESSAGE);
 			System.exit(1);
 		}
-		catch (Exception IOe) {
-			System.out.println(IOe.getMessage());
+		catch (Exception e) {
+			System.out.println(e.getMessage());
 		}
 	}
 
@@ -158,10 +160,11 @@ public class Tracker extends Application {
 
 			if (!tDuration.getText().isEmpty()) {
 				writer.write("*" + tJob.getText() + "," + tCode.getText() +  "," + tDate.getText() +  "," + tDuration.getText() + "\n");
-//				System.out.println("wrote in progress job");
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Failed writing to file", "WriteLog()", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
+//			e.printStackTrace();
 		}
 	}
 
@@ -464,7 +467,8 @@ public class Tracker extends Application {
 		bContinue.setDisable(true);
 		bDelete.setDisable(true);
 
-		if (jobList[jobList.length - 1].getProject().startsWith("*")) {
+		// ensure file contains data before checking for in-progress jobs
+		if (jobList.length > 0 && jobList[jobList.length - 1].getProject().startsWith("*")) {
 			table.getSelectionModel().select(jobList.length - 1);
 			Jobs job = table.getSelectionModel().getSelectedItem();
 
@@ -513,7 +517,14 @@ public class Tracker extends Application {
 //	}
 
 	public static void main(String[] args) {
-		durTimer.schedule(durTask, 500, 500); // start delay, update delay
+		try {
+			durTimer.schedule(durTask, 500, 500); // start delay, update delay
+		}
+		catch (Exception e){
+			System.out.println("Error starting timer");
+			System.out.println(e.getMessage());
+			System.exit(1);
+		}
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			durTimer.cancel();
