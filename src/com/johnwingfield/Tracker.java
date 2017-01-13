@@ -72,6 +72,38 @@ public class Tracker extends Application {
 	}
 
 	/**
+	 * Checks dates for single digits and resolves it
+	 * @param d date string to be checked
+	 * @return String
+	 */
+	private static String fixDate(String d) {
+		if (d.length() < 8) {
+			String[] parts = d.split("/");
+
+			if (parts.length != 3) {
+				JOptionPane.showMessageDialog(null, "Failed fixing date " + d, "FixDate()", JOptionPane.ERROR_MESSAGE);
+				System.exit(1);
+			}
+
+			if (parts[0].length() == 1) {
+				parts[0] = "0" + parts[0];
+			}
+
+			if (parts[1].length() == 1) {
+				parts[1] = "0" + parts[1];
+			}
+
+			if (parts[2].length() == 1) {
+				parts[2] = "0" + parts[2];
+			}
+
+			d = parts[0] + "/" + parts[1] + "/" + parts[2];
+		}
+
+		return d;
+	}
+
+	/**
 	 * Loads Tracker.txt file from current location into jobList
 	 */
 	private void loadLog() {
@@ -107,7 +139,7 @@ public class Tracker extends Application {
 	/**
 	 * Saves current job info to dataList, removing any continued jobs from same day
 	 */
-	private void saveLog() {
+	private void saveJob() {
 		if (tJob.getText().length() == 0) {
 			tJob.requestFocus();
 			return;
@@ -123,7 +155,7 @@ public class Tracker extends Application {
 		}
 
 		for (Jobs job : dataList) {
-			// check for * and remove it so it can match and overwrite
+			// check for * and remove it so project can be matched and replaced
 			String projectName = job.getProject();
 			if (projectName.startsWith("*")) {
 				projectName = projectName.substring(1);
@@ -131,7 +163,7 @@ public class Tracker extends Application {
 
 			if ((projectName.equals(tJob.getText())) &&
 				(job.getCode().equals(tCode.getText())) &&
-				(job.getDate().equals(tDate.getText()))) {
+				(job.getDate().equals(fixDate(tDate.getText())))) {
 					dataList.remove(job);
 					break;
 				}
@@ -139,7 +171,7 @@ public class Tracker extends Application {
 
 		dataList.add(new Jobs(tJob.getText(),
 							  tCode.getText(),
-							  tDate.getText(),
+							  fixDate(tDate.getText()),
 							  tDuration.getText()));
 
 		resetJob();
@@ -154,12 +186,12 @@ public class Tracker extends Application {
 			for (Jobs job : dataList) {
 				writer.write(job.getProject() + "," +
 							 job.getCode() + "," +
-							 job.getDate() + "," +
+							 fixDate(job.getDate()) + "," +
 							 job.getDuration() + "\n");
 			}
 
 			if (!tDuration.getText().isEmpty()) {
-				writer.write("*" + tJob.getText() + "," + tCode.getText() +  "," + tDate.getText() +  "," + tDuration.getText() + "\n");
+				writer.write("*" + tJob.getText() + "," + tCode.getText() +  "," + fixDate(tDate.getText()) +  "," + tDuration.getText() + "\n");
 			}
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null, "Failed writing to file", "WriteLog()", JOptionPane.ERROR_MESSAGE);
@@ -346,7 +378,7 @@ public class Tracker extends Application {
 		GridPane.setHalignment(tDate, HPos.CENTER);
 		gridPane.add(tDate, 2, 2);
 
-		bSave.setOnAction(ae -> saveLog());
+		bSave.setOnAction(ae -> saveJob());
 		bStart.setOnAction(ae -> startTimer());
 		bStop.setOnAction(ae -> stopTimer());
 		bReset.setOnAction(ae -> resetJob());
