@@ -26,14 +26,7 @@ class ReadLog {
 
 			while ((line = br.readLine()) != null) {
 				String str[] = line.split(",");
-
-//				jobs[currentLine] = new Jobs();
-//				jobs[currentLine].setProject(str[Globals.PROJECT]);
-//				jobs[currentLine].setCode(str[Globals.CODE]);
-//				jobs[currentLine].setDate(str[Globals.DATE]);
-//				jobs[currentLine].setDuration(str[Globals.DURATION]);
 				jobs[currentLine] = new Jobs(str[Globals.PROJECT], str[Globals.CODE], str[Globals.DATE], str[Globals.DURATION]);
-
 				++currentLine;
 			}
 
