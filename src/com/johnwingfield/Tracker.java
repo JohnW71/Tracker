@@ -1,8 +1,11 @@
 package com.johnwingfield;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
@@ -10,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
@@ -44,6 +48,9 @@ public class Tracker extends Application {
 	private static TextField tJob, tCode, tDuration, tDate;
 	private static final DurTimerTask durTask = new DurTimerTask();
 	private static final Timer durTimer = new Timer(true);
+	private final MenuBar menuBar = new MenuBar();
+	private ToolBar toolBar = new ToolBar();
+	private EventHandler<ActionEvent> eHandler;
 
 	/**
 	 * Convert duration string to milliseconds
@@ -294,7 +301,7 @@ public class Tracker extends Application {
 	}
 
 	/**
-	 * Sets current date in textfield in correct format
+	 * Sets current date in text field in correct format
 	 */
 	private void setDate() {
 		DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
@@ -320,6 +327,9 @@ public class Tracker extends Application {
 	public void start(Stage stage) {
 		loadLog();
 
+		// remove window decoration
+//		stage.initStyle(StageStyle.UNDECORATED);
+
 		stage.setTitle("Tracker v1.0 - John Wingfield");
 		stage.setResizable(false);
 
@@ -329,66 +339,69 @@ public class Tracker extends Application {
 		gridPane.setHgap(10);
 		gridPane.setVgap(10);
 
-		Scene scene = new Scene(rootNode, 650, 450);
+		Scene scene = new Scene(rootNode, 360, 460);
 
-//		bLoad = new Button("Load log file");
-//		GridPane.setHalignment(bLoad, HPos.CENTER);
-//		gridPane.add(bLoad, 0, 0);
-
+		// add buttons and text fields
 		bSave = new Button("Save project/code");
 		GridPane.setHalignment(bSave, HPos.CENTER);
-		gridPane.add(bSave, 1, 0);
 		bSave.setDisable(true);
 
 		bReset = new Button("Reset");
 		GridPane.setHalignment(bReset, HPos.CENTER);
-		gridPane.add(bReset, 2, 0);
 		bReset.setDisable(true);
 
 		bStart = new Button("Start timer");
 		GridPane.setHalignment(bStart, HPos.CENTER);
-		gridPane.add(bStart, 0, 1);
-
-		tDuration = new TextField();
-		tDuration.setPromptText("00:00:00");
-		tDuration.setPrefColumnCount(8);
-		GridPane.setHalignment(tDuration, HPos.CENTER);
-		gridPane.add(tDuration, 1, 1);
 
 		bStop = new Button("Stop timer");
 		GridPane.setHalignment(bStop, HPos.CENTER);
-		gridPane.add(bStop, 2, 1);
 		bStop.setDisable(true);
+
+		bContinue = new Button("Continue");
+		GridPane.setHalignment(bContinue, HPos.CENTER);
+
+		bDelete = new Button("Delete");
+		GridPane.setHalignment(bDelete, HPos.CENTER);
 
 		tJob = new TextField();
 		tJob.setPromptText("project");
 		tJob.setPrefColumnCount(15);
 		GridPane.setHalignment(tJob, HPos.CENTER);
-		gridPane.add(tJob, 0, 2);
+		gridPane.add(tJob, 0, 3);
 
 		tCode = new TextField();
 		tCode.setPromptText("code");
 		tCode.setPrefColumnCount(15);
 		GridPane.setHalignment(tCode, HPos.CENTER);
-		gridPane.add(tCode, 1, 2);
+		gridPane.add(tCode, 0, 4);
+
+		tDuration = new TextField();
+		tDuration.setPromptText("00:00:00");
+		tDuration.setPrefColumnCount(8);
+		GridPane.setHalignment(tDuration, HPos.CENTER);
+		gridPane.add(tDuration, 1, 3);
 
 		tDate = new TextField();
 		tDate.setPromptText("ddmmyy");
-		tDate.setPrefColumnCount(6);
+		tDate.setPrefColumnCount(8);
 		GridPane.setHalignment(tDate, HPos.CENTER);
-		gridPane.add(tDate, 2, 2);
+		gridPane.add(tDate, 1, 4);
 
-		bSave.setOnAction(ae -> saveJob());
+		// action events
 		bStart.setOnAction(ae -> startTimer());
 		bStop.setOnAction(ae -> stopTimer());
+		bSave.setOnAction(ae -> saveJob());
 		bReset.setOnAction(ae -> resetJob());
+		bContinue.setOnAction(ae -> continueOldJob());
+		bDelete.setOnAction(ae -> deleteOldJob());
 
+		// create table
 		dataList = FXCollections.observableArrayList(jobList);
-
-		table.setPrefWidth(300);
+		table.setPrefWidth(350);
 		table.setPrefHeight(300);
 		table.setEditable(true);
 
+		// add table columns
 		TableColumn<Jobs, String> projectCol = new TableColumn<>("Project");
 		projectCol.setCellValueFactory(new PropertyValueFactory<>("project"));
 		projectCol.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -427,6 +440,7 @@ public class Tracker extends Application {
 		table.getSortOrder().add(dateCol);
 		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
+		// enable/disable Continue & Delete depending if a row is selected or not
 		table.getSelectionModel().selectedIndexProperty().addListener((obs, oldSelection, newSelection) -> {
 			if (table.getSelectionModel().getSelectedItem() != null) {
 				bContinue.setDisable(false);
@@ -438,6 +452,7 @@ public class Tracker extends Application {
 			}
 		});
 
+		// determine selected row
 		table.setRowFactory(table2 -> {
 			final TableRow<Jobs> row = new TableRow<>();
 
@@ -453,48 +468,40 @@ public class Tracker extends Application {
 			return row;
 		});
 
-		gridPane.add(table, 0, 3);
+		GridPane gridPane2 = new GridPane();
+		gridPane2.setPadding(new Insets(5));
+		gridPane2.setHgap(10);
+		gridPane2.setVgap(10);
+
+		// create and add toolbar
+		makeToolBar();
+		gridPane2.add(toolBar, 0, 0);
+
+		// add table to grid
+		gridPane2.add(table, 0, 1);
+		rootNode.getChildren().add(gridPane2);
+		gridPane.add(gridPane2, 0, 5, 2, 1);
 		rootNode.getChildren().add(gridPane);
 
-//		GridPane gridPane2 = new GridPane();
-//		gridPane2.setPadding(new Insets(5));
-//		gridPane2.setHgap(10);
-//		gridPane2.setVgap(19);
+// is this even required?
+		// create one event handler for all menu action events.
+		eHandler = new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent ae) {
+				String name = ((MenuItem)ae.getTarget()).getText();
 
-//		rootNode.getChildren().add(gridPane2);
+				if(name.equals("Exit"))
+					Platform.exit();
+			}
+		};
 
-//		GridPane.setHalignment(gridPane2, HPos.CENTER);
-//		gridPane.add(gridPane2, 0, 3);
-
-		GridPane gridPane3 = new GridPane();
-		gridPane3.setPadding(new Insets(5));
-		gridPane3.setHgap(10);
-		gridPane3.setVgap(10);
-
-		bContinue = new Button("Continue");
-		GridPane.setHalignment(bContinue, HPos.CENTER);
-		gridPane3.add(bContinue, 0, 0);
-
-//		bEdit = new Button("Edit");
-//		GridPane.setHalignment(bEdit, HPos.CENTER);
-//		gridPane3.add(bEdit, 1, 0);
-
-		bDelete = new Button("Delete");
-		GridPane.setHalignment(bDelete, HPos.CENTER);
-		gridPane3.add(bDelete, 2, 0);
-
-		bContinue.setOnAction(ae -> continueOldJob());
-//		bEdit.setOnAction(ae -> editOldJob());
-		bDelete.setOnAction(ae -> deleteOldJob());
-
-		rootNode.getChildren().add(gridPane3);
-
-//		GridPane.setHalignment(gridPane3, HPos.CENTER);
-		gridPane.add(gridPane3, 1, 3);
+		// create and add the Reporting menu
+		makeReportMenu();
+		rootNode.getChildren().add(menuBar);
 
 		stage.setScene(scene);
 		stage.show();
 		setDate();
+		gridPane.requestFocus(); // otherwise project text field starts with focus
 
 		bContinue.setDisable(true);
 		bDelete.setDisable(true);
@@ -530,9 +537,90 @@ public class Tracker extends Application {
 		}
 	}
 
+	/**
+	 * Create the Report menu
+	 */
+	private void makeReportMenu() {
+		Menu reportMenu = new Menu("_Report");
+
+		MenuItem byDate = new MenuItem("By date");
+		MenuItem byRange = new MenuItem("By date range");
+		MenuItem byProject = new MenuItem("By project");
+		MenuItem byAProject = new MenuItem("Specific project");
+
+		reportMenu.getItems().addAll(byDate, byRange, byProject, byAProject);
+
+		byDate.setOnAction(eHandler);
+		byRange.setOnAction(eHandler);
+		byProject.setOnAction(eHandler);
+		byAProject.setOnAction(eHandler);
+
+		menuBar.getMenus().add(reportMenu);
+	}
+
+	/**
+	 * Create the toolbar
+	 */
+	private void makeToolBar() {
+		// create and size icons
+		ImageView startIcon = new ImageView("/com/johnwingfield/images/start.png");
+		startIcon.setFitWidth(Globals.ICON_SIZE);
+		startIcon.setFitHeight(Globals.ICON_SIZE);
+
+		ImageView stopIcon = new ImageView("/com/johnwingfield/images/stop.png");
+		stopIcon.setFitWidth(Globals.ICON_SIZE);
+		stopIcon.setFitHeight(Globals.ICON_SIZE);
+
+		ImageView saveIcon = new ImageView("/com/johnwingfield/images/save.png");
+		saveIcon.setFitWidth(Globals.ICON_SIZE);
+		saveIcon.setFitHeight(Globals.ICON_SIZE);
+
+		ImageView resetIcon = new ImageView("/com/johnwingfield/images/reset.png");
+		resetIcon.setFitWidth(Globals.ICON_SIZE);
+		resetIcon.setFitHeight(Globals.ICON_SIZE);
+
+		ImageView continueIcon = new ImageView("/com/johnwingfield/images/continue.png");
+		continueIcon.setFitWidth(Globals.ICON_SIZE);
+		continueIcon.setFitHeight(Globals.ICON_SIZE);
+
+		ImageView deleteIcon = new ImageView("/com/johnwingfield/images/delete.png");
+		deleteIcon.setFitWidth(Globals.ICON_SIZE);
+		deleteIcon.setFitHeight(Globals.ICON_SIZE);
+
+		// create toolbar items
+		bStart.setGraphic(startIcon);
+		bStop.setGraphic(stopIcon);
+		bSave.setGraphic(saveIcon);
+		bReset.setGraphic(resetIcon);
+		bContinue.setGraphic(continueIcon);
+		bDelete.setGraphic(deleteIcon);
+
+		// turn off text in the buttons
+		bStart.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+		bStop.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+		bSave.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+		bReset.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+		bContinue.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+		bDelete.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+
+		// add tooltips
+		bStart.setTooltip(new Tooltip("Start"));
+		bStop.setTooltip(new Tooltip("Stop"));
+		bSave.setTooltip(new Tooltip("Save"));
+		bReset.setTooltip(new Tooltip("Reset"));
+		bContinue.setTooltip(new Tooltip("Continue"));
+		bDelete.setTooltip(new Tooltip("Delete"));
+
+		// create the toolbar
+		toolBar = new ToolBar(bStart, bStop, bSave, bReset, bContinue, bDelete);
+	}
+
+	/**
+	 *  Define the timer for updating the duration text field
+	 */
 	static class DurTimerTask extends TimerTask {
 		public void run() {
-			if (isRunning) { // Update duration textfield with current duration
+			if (isRunning) { // Update duration text field with current duration
 				duration = ((System.currentTimeMillis() - startTime) + previousTime) / Globals.MS_PER_SEC;
 				tDuration.setText(convertToStr(duration));
 			}

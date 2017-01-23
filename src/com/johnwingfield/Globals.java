@@ -6,6 +6,7 @@ package com.johnwingfield;
  * @author John Wingfield
  */
 class Globals {
+	static final int ICON_SIZE = 20;
 	static final int PROJECT = 0;
 	static final int CODE = 1;
 	static final int DATE = 2;
