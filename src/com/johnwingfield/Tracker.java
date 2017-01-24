@@ -1,7 +1,6 @@
 package com.johnwingfield;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -51,6 +50,47 @@ public class Tracker extends Application {
 	private final MenuBar menuBar = new MenuBar();
 	private ToolBar toolBar = new ToolBar();
 	private EventHandler<ActionEvent> eHandler;
+	private TableColumn<Jobs, String> projectCol = new TableColumn<>("Project");
+	private TableColumn<Jobs, String> codeCol = new TableColumn<>("Code");
+	private TableColumn<Jobs, String> dateCol = new TableColumn<>("Date");
+	private TableColumn<Jobs, String> durationCol = new TableColumn<>("Duration");
+
+	public static void main(String[] args) {
+		try {
+			durTimer.schedule(durTask, 500, 500); // start delay, update delay
+		}
+		catch (Exception e){
+			System.out.println("Error starting timer");
+			System.out.println(e.getMessage());
+			System.exit(1);
+		}
+
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			durTimer.cancel();
+			writeLog();
+		}));
+
+		launch(args);
+	}
+
+//	private void showList() {
+//		for (int i = 0; i < jobList.length; ++i) {
+//			System.out.println(jobList[i].getProject() + ", " +
+//								jobList[i].getCode() + ", " +
+//								jobList[i].getDate() + ", " +
+//								jobList[i].getDuration());
+//		}
+//	}
+
+	private void showData() {
+		for (Jobs job : dataList) {
+			System.out.println(job.getProject() + "," +
+								job.getCode() + "," +
+								fixDate(job.getDate()) + "," +
+								job.getDuration());
+		}
+		System.out.println("\n");
+	}
 
 	/**
 	 * Convert duration string to milliseconds
@@ -198,7 +238,10 @@ public class Tracker extends Application {
 			}
 
 			if (!tDuration.getText().isEmpty()) {
-				writer.write("*" + tJob.getText() + "," + tCode.getText() +  "," + fixDate(tDate.getText()) +  "," + tDuration.getText() + "\n");
+				writer.write("*" + tJob.getText() +
+							 "," + tCode.getText() +
+							 "," + fixDate(tDate.getText()) +
+							 "," + tDuration.getText() + "\n");
 			}
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null, "Failed writing to file", "WriteLog()", JOptionPane.ERROR_MESSAGE);
@@ -311,7 +354,7 @@ public class Tracker extends Application {
 	/**
 	 * Compare dates by YYMMDD for table sort
 	 */
-	public class DateComparator implements Comparator<String> {
+	private class DateComparator implements Comparator<String> {
 		public int compare(String s1, String s2) {
 			int i1 = Integer.parseInt(s1.substring(6, 8) + s1.substring(3, 5) + s1.substring(0,2));
 			int i2 = Integer.parseInt(s2.substring(6, 8) + s2.substring(3, 5) + s2.substring(0,2));
@@ -402,21 +445,18 @@ public class Tracker extends Application {
 		table.setEditable(true);
 
 		// add table columns
-		TableColumn<Jobs, String> projectCol = new TableColumn<>("Project");
 		projectCol.setCellValueFactory(new PropertyValueFactory<>("project"));
 		projectCol.setCellFactory(TextFieldTableCell.forTableColumn());
 		projectCol.setOnEditCommit(
 			t -> t.getTableView().getItems().get(t.getTablePosition().getRow()).setProject(t.getNewValue())
 		);
 
-		TableColumn<Jobs, String> codeCol = new TableColumn<>("Code");
 		codeCol.setCellValueFactory(new PropertyValueFactory<>("code"));
 		codeCol.setCellFactory(TextFieldTableCell.forTableColumn());
 		codeCol.setOnEditCommit(
 			t -> t.getTableView().getItems().get(t.getTablePosition().getRow()).setCode(t.getNewValue())
 		);
 
-		TableColumn<Jobs, String> dateCol = new TableColumn<>("Date");
 		dateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
 		dateCol.setSortType(TableColumn.SortType.ASCENDING);
 		dateCol.setComparator(new DateComparator());
@@ -425,7 +465,6 @@ public class Tracker extends Application {
 			t -> t.getTableView().getItems().get(t.getTablePosition().getRow()).setDate(t.getNewValue())
 		);
 
-		TableColumn<Jobs, String> durationCol = new TableColumn<>("Duration");
 		durationCol.setCellValueFactory(new PropertyValueFactory<>("duration"));
 		durationCol.setCellFactory(TextFieldTableCell.forTableColumn());
 		durationCol.setOnEditCommit(
@@ -483,15 +522,10 @@ public class Tracker extends Application {
 		gridPane.add(gridPane2, 0, 5, 2, 1);
 		rootNode.getChildren().add(gridPane);
 
-// is this even required?
-		// create one event handler for all menu action events.
-		eHandler = new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent ae) {
-				String name = ((MenuItem)ae.getTarget()).getText();
-
-				if(name.equals("Exit"))
-					Platform.exit();
-			}
+		// create one event handler for all menu action events
+		eHandler = ae -> {
+			String name = ((MenuItem)ae.getTarget()).getText();
+			Report(name);
 		};
 
 		// create and add the Reporting menu
@@ -541,7 +575,7 @@ public class Tracker extends Application {
 	 * Create the Report menu
 	 */
 	private void makeReportMenu() {
-		Menu reportMenu = new Menu("_Report");
+		Menu reportMenu = new Menu("_Reporting");
 
 		MenuItem byDate = new MenuItem("By date");
 		MenuItem byRange = new MenuItem("By date range");
@@ -616,6 +650,43 @@ public class Tracker extends Application {
 	}
 
 	/**
+	 * Generates chosen report
+	 * @param choice name of selected report
+	 */
+	private void Report(String choice) {
+		switch (choice) {
+			case "By date":
+				showData();
+
+				table.getSortOrder().clear();
+				table.getSortOrder().add(dateCol);
+				table.getSortOrder().add(projectCol);
+				table.getSortOrder().add(codeCol);
+
+				showData();
+
+				table.getSortOrder().clear();
+				break;
+			case "By date range":
+				break;
+			case "By project":
+				showData();
+
+				table.getSortOrder().clear();
+				table.getSortOrder().add(projectCol);
+				table.getSortOrder().add(codeCol);
+				table.getSortOrder().add(dateCol);
+
+				showData();
+
+				table.getSortOrder().clear();
+				break;
+			case "Specific project":
+				break;
+		}
+	}
+
+	/**
 	 *  Define the timer for updating the duration text field
 	 */
 	static class DurTimerTask extends TimerTask {
@@ -625,32 +696,5 @@ public class Tracker extends Application {
 				tDuration.setText(convertToStr(duration));
 			}
 		}
-	}
-
-//	private void showList() {
-//		for (int i = 0; i < jobList.length; ++i) {
-//			System.out.println(jobList[i].getProject() + ", " +
-//					jobList[i].getCode() + ", " +
-//					jobList[i].getDate() + ", " +
-//					jobList[i].getDuration());
-//		}
-//	}
-
-	public static void main(String[] args) {
-		try {
-			durTimer.schedule(durTask, 500, 500); // start delay, update delay
-		}
-		catch (Exception e){
-			System.out.println("Error starting timer");
-			System.out.println(e.getMessage());
-			System.exit(1);
-		}
-
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			durTimer.cancel();
-			writeLog();
-		}));
-
-		launch(args);
 	}
 }
