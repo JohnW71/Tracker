@@ -29,6 +29,9 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+//TODO finish reporting
+//TODO save screen position
+
 /**
  * Project based time tracking
  *
@@ -39,9 +42,9 @@ public class Tracker extends Application {
 	private Jobs[] jobList;
 	private final TableView<Jobs> table = new TableView<>();
 	private static ObservableList<Jobs> dataList;
-	private static long startTime = 0;
-	private static long previousTime = 0;
-	private static long duration = 0;
+	private static double startTime = 0;
+	private static double previousTime = 0;
+	private static double duration = 0;
 	private static boolean isRunning = false;
 	private static Button bSave, bStart, bStop, bContinue, bDelete, bReset;
 	private static TextField tJob, tCode, tDuration, tDate;
@@ -82,23 +85,23 @@ public class Tracker extends Application {
 //		}
 //	}
 
-	private void showData() {
-		for (Jobs job : dataList) {
-			System.out.println(job.getProject() + "," +
-								job.getCode() + "," +
-								fixDate(job.getDate()) + "," +
-								job.getDuration());
-		}
-		System.out.println("\n");
-	}
+//	private void showData() {
+//		for (Jobs job : dataList) {
+//			System.out.println(job.getProject() + "," +
+//								job.getCode() + "," +
+//								fixDate(job.getDate()) + "," +
+//								job.getDuration());
+//		}
+//		System.out.println("\n");
+//	}
 
 	/**
 	 * Convert duration string to milliseconds
 	 *
 	 * @param txtDuration eg. "08:30:00" to 293472386123
-	 * @return Long
+	 * @return double
 	 */
-	private long convertToMS(String txtDuration) {
+	private double convertToMS(String txtDuration) {
 		return  (Long.parseLong(txtDuration.substring(0, 2)) * Globals.MS_PER_HOUR) +
 				(Long.parseLong(txtDuration.substring(3, 5)) * Globals.MS_PER_MIN) +
 				(Long.parseLong(txtDuration.substring(6, 8)) * Globals.MS_PER_SEC);
@@ -110,12 +113,23 @@ public class Tracker extends Application {
 	 * @param msDuration eg. 12837127312 to "08:30:00"
 	 * @return String
 	 */
-	private static String convertToStr(long msDuration) {
-		int seconds = (int) msDuration % Globals.SEC_PER_MIN;
-		int minutes = (int) (msDuration / Globals.SEC_PER_MIN) % Globals.MIN_PER_HOUR;
-		int hours   = (int) (msDuration / Globals.SEC_PER_HOUR) % Globals.HOUR_PER_DAY;
-
+	private static String convertToStr(double msDuration) {
+		int hours   = (int) (msDuration / Globals.MS_PER_HOUR);
+		int minutes = (int) ((msDuration / Globals.MS_PER_MIN) % Globals.MIN_PER_HOUR);
+		int seconds = (int) (msDuration / Globals.MS_PER_SEC) % Globals.SEC_PER_MIN;
 		return(String.format("%02d:%02d:%02d\n", hours, minutes, seconds));
+	}
+
+	/**
+	 * Returns specified amount of spaces for padding
+	 *
+	 * @param length Amount of spaces to be returned
+	 * @return String
+	 */
+	private String spaces(int length) {
+		String padding = "";
+		for (int i = 0; i <= length; ++i) padding += " ";
+		return padding;
 	}
 
 	/**
@@ -246,6 +260,37 @@ public class Tracker extends Application {
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null, "Failed writing to file", "WriteLog()", JOptionPane.ERROR_MESSAGE);
 			System.exit(1);
+//			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Saves supplied report data to file
+	 *
+	 * @param reportTxt collated report data string
+	 */
+	private static void writeReport(String reportTxt, int reportType) {
+		String reportFile = "";
+
+		switch (reportType) {
+			case Globals.REPORT_BY_DATE:
+				reportFile = Globals.reportByDate;
+				break;
+			case Globals.REPORT_BY_RANGE:
+				reportFile = Globals.reportByDateRange;
+				break;
+			case Globals.REPORT_BY_PROJECT:
+				reportFile = Globals.reportByProject;
+				break;
+			case Globals.REPORT_SPECIFIC_PROJECT:
+				reportFile = Globals.reportSpecificProject;
+				break;
+		}
+
+		try (FileWriter writer = new FileWriter(reportFile)) {
+				writer.write(reportTxt);
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null, "Failed writing report file", "WriteReport()", JOptionPane.ERROR_MESSAGE);
 //			e.printStackTrace();
 		}
 	}
@@ -656,33 +701,83 @@ public class Tracker extends Application {
 	private void Report(String choice) {
 		switch (choice) {
 			case "By date":
-				showData();
-
 				table.getSortOrder().clear();
 				table.getSortOrder().add(dateCol);
 				table.getSortOrder().add(projectCol);
 				table.getSortOrder().add(codeCol);
 
-				showData();
+				String reportTxt = "";
+				int longestProj = 0;
+				int longestCode = 0;
 
+				// find longest project & code fields
+				for (int i = 0; i < dataList.size(); ++i) {
+					String curProj = dataList.get(i).getProject();
+					String curCode = dataList.get(i).getCode();
+					if (curProj.length() > longestProj) longestProj = curProj.length();
+					if (curCode.length() > longestCode) longestCode = curCode.length();
+				}
+
+				// collate data
+				for (int i = 0; i < dataList.size(); ++i) {
+					String curDate = dataList.get(i).getDate(); // get first row data
+					String curProj = dataList.get(i).getProject();
+					String curCode = dataList.get(i).getCode();
+					String curDur = dataList.get(i).getDuration();
+					double totalDur = convertToMS(curDur);
+					reportTxt += curDate + " " + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
+					++i;
+
+					// while next date matches first row
+					while (i < dataList.size() && dataList.get(i).getDate().equals(curDate)) {
+						curProj = dataList.get(i).getProject();
+						curCode = dataList.get(i).getCode();
+						curDur = dataList.get(i).getDuration();
+						totalDur += convertToMS(curDur);
+						reportTxt += "         " + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
+						++i;
+					}
+
+					reportTxt += spaces(curDate.length()) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
+				}
+
+//System.out.println(reportTxt);
 				table.getSortOrder().clear();
+				writeReport(reportTxt, Globals.REPORT_BY_DATE);
 				break;
-			case "By date range":
-				break;
-			case "By project":
-				showData();
-
-				table.getSortOrder().clear();
-				table.getSortOrder().add(projectCol);
-				table.getSortOrder().add(codeCol);
-				table.getSortOrder().add(dateCol);
-
-				showData();
-
-				table.getSortOrder().clear();
-				break;
-			case "Specific project":
-				break;
+//			case "By date range":
+//showData();
+//
+//				table.getSortOrder().clear();
+//				table.getSortOrder().add(dateCol);
+//				table.getSortOrder().add(projectCol);
+//				table.getSortOrder().add(codeCol);
+//
+//showData();
+//				table.getSortOrder().clear();
+//				break;
+//			case "By project":
+//showData();
+//
+//				table.getSortOrder().clear();
+//				table.getSortOrder().add(projectCol);
+//				table.getSortOrder().add(codeCol);
+//				table.getSortOrder().add(dateCol);
+//
+//showData();
+//				table.getSortOrder().clear();
+//				break;
+//			case "Specific project":
+//showData();
+//
+//				table.getSortOrder().clear();
+//				table.getSortOrder().add(projectCol);
+//				table.getSortOrder().add(codeCol);
+//				table.getSortOrder().add(dateCol);
+//
+//showData();
+//				table.getSortOrder().clear();
+//				break;
 		}
 	}
 
