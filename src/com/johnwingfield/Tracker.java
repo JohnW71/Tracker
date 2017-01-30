@@ -31,8 +31,8 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
-//TODO finish reporting
 //TODO save screen position
+//TODO add data and do full test
 
 /**
  * Project based time tracking
@@ -55,10 +55,10 @@ public class Tracker extends Application {
 	private final MenuBar menuBar = new MenuBar();
 	private ToolBar toolBar = new ToolBar();
 	private EventHandler<ActionEvent> eHandler;
-	private TableColumn<Jobs, String> projectCol = new TableColumn<>("Project");
-	private TableColumn<Jobs, String> codeCol = new TableColumn<>("Code");
-	private TableColumn<Jobs, String> dateCol = new TableColumn<>("Date");
-	private TableColumn<Jobs, String> durationCol = new TableColumn<>("Duration");
+	private final TableColumn<Jobs, String> projectCol = new TableColumn<>("Project");
+	private final TableColumn<Jobs, String> codeCol = new TableColumn<>("Code");
+	private final TableColumn<Jobs, String> dateCol = new TableColumn<>("Date");
+	private final TableColumn<Jobs, String> durationCol = new TableColumn<>("Duration");
 	private DatePicker startDatePicker;
 	private DatePicker endDatePicker;
 	private String startDate;
@@ -245,7 +245,7 @@ public class Tracker extends Application {
 				(job.getDate().equals(fixDate(tDate.getText())))) {
 					dataList.remove(job);
 					break;
-				}
+			}
 		}
 
 		dataList.add(new Jobs(tJob.getText(),
@@ -306,7 +306,7 @@ public class Tracker extends Application {
 		}
 
 		try (FileWriter writer = new FileWriter(reportFile)) {
-				writer.write(reportTxt);
+			writer.write(reportTxt);
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null, "Failed writing report file", "WriteReport()", JOptionPane.ERROR_MESSAGE);
 //			e.printStackTrace();
@@ -521,7 +521,7 @@ public class Tracker extends Application {
 		);
 
 		dateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
-		dateCol.setSortType(TableColumn.SortType.ASCENDING);
+		dateCol.setSortType(TableColumn.SortType.DESCENDING);
 		dateCol.setComparator(new DateComparator());
 		dateCol.setCellFactory(TextFieldTableCell.forTableColumn());
 		dateCol.setOnEditCommit(
@@ -729,9 +729,9 @@ public class Tracker extends Application {
 				table.getSortOrder().add(codeCol);
 
 				// find longest project & code fields
-				for (int i = 0; i < dataList.size(); ++i) {
-					String curProj = dataList.get(i).getProject();
-					String curCode = dataList.get(i).getCode();
+				for (Jobs row : dataList) {
+					String curProj = row.getProject();
+					String curCode = row.getCode();
 					if (curProj.length() > longestProj) longestProj = curProj.length();
 					if (curCode.length() > longestCode) longestCode = curCode.length();
 				}
@@ -746,14 +746,23 @@ public class Tracker extends Application {
 					reportTxt += curDate + " " + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
 					++i;
 
-					// while next date matches first row
-					while (i < dataList.size() && dataList.get(i).getDate().equals(curDate)) {
-						curProj = dataList.get(i).getProject();
-						curCode = dataList.get(i).getCode();
-						curDur = dataList.get(i).getDuration();
-						totalDur += convertToMS(curDur);
-						reportTxt += spaces(curDate.length()) + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
-						++i;
+					if (i < dataList.size() && dataList.get(i).getDate().equals(curDate)) {
+						// while next date matches first row
+						while (i < dataList.size() && dataList.get(i).getDate().equals(curDate)) {
+							curProj = dataList.get(i).getProject();
+							curCode = dataList.get(i).getCode();
+							curDur = dataList.get(i).getDuration();
+							totalDur += convertToMS(curDur);
+							reportTxt += spaces(curDate.length()) + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
+							++i;
+						}
+
+						if (i < dataList.size() && !dataList.get(i).getDate().equals(curDate)) {
+							--i;
+						}
+					}
+					else {
+						--i;
 					}
 
 					reportTxt += spaces(curDate.length()) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
@@ -767,16 +776,15 @@ public class Tracker extends Application {
 				DateSelector();
 				break;
 			case "By project":
-				//TODO
 				table.getSortOrder().clear();
 				table.getSortOrder().add(projectCol);
 				table.getSortOrder().add(codeCol);
 				table.getSortOrder().add(dateCol);
 
 				// find longest project & code fields
-				for (int i = 0; i < dataList.size(); ++i) {
-					String curProj = dataList.get(i).getProject();
-					String curCode = dataList.get(i).getCode();
+				for (Jobs row : dataList) {
+					String curProj = row.getProject();
+					String curCode = row.getCode();
 					if (curProj.length() > longestProj) longestProj = curProj.length();
 					if (curCode.length() > longestCode) longestCode = curCode.length();
 				}
@@ -788,19 +796,26 @@ public class Tracker extends Application {
 					String curDate = dataList.get(i).getDate();
 					String curDur = dataList.get(i).getDuration();
 					double totalDur = convertToMS(curDur);
-//					reportTxt += curDate + " " + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
 					reportTxt += curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDate + " " + curDur + "\n";
 					++i;
 
-					// while next date matches first row
-					while (i < dataList.size() && dataList.get(i).getProject().equals(curProj)) {
-						curCode = dataList.get(i).getCode();
-						curDate = dataList.get(i).getDate();
-						curDur = dataList.get(i).getDuration();
-						totalDur += convertToMS(curDur);
-//						reportTxt += curDate + " " + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
-						reportTxt += curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDate + " " + curDur + "\n";
-						++i;
+					if (i < dataList.size() && dataList.get(i).getProject().equals(curProj)) {
+						// while next date matches first row
+						while (i < dataList.size() && dataList.get(i).getProject().equals(curProj)) {
+							curCode = dataList.get(i).getCode();
+							curDate = dataList.get(i).getDate();
+							curDur = dataList.get(i).getDuration();
+							totalDur += convertToMS(curDur);
+							reportTxt += curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDate + " " + curDur + "\n";
+							++i;
+						}
+
+						if (i < dataList.size() && !dataList.get(i).getProject().equals(curProj)) {
+							--i;
+						}
+					}
+					else {
+						--i;
 					}
 
 					reportTxt += spaces(curDate.length()) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
@@ -810,48 +825,73 @@ public class Tracker extends Application {
 				writeReport(reportTxt, Globals.REPORT_BY_PROJECT);
 				JOptionPane.showMessageDialog(null, "Report saved as " + Globals.reportByProject, "Report", JOptionPane.INFORMATION_MESSAGE);
 				break;
-//			case "Specific project":
-//				//TODO use message box
-//				table.getSortOrder().clear();
-//				table.getSortOrder().add(dateCol);
-//				table.getSortOrder().add(projectCol);
-//				table.getSortOrder().add(codeCol);
-//
-//				// find longest project & code fields
-//				for (int i = 0; i < dataList.size(); ++i) {
-//					String curProj = dataList.get(i).getProject();
-//					String curCode = dataList.get(i).getCode();
-//					if (curProj.length() > longestProj) longestProj = curProj.length();
-//					if (curCode.length() > longestCode) longestCode = curCode.length();
-//				}
-//
-//				// collate data
-//				for (int i = 0; i < dataList.size(); ++i) {
-//					String curDate = dataList.get(i).getDate(); // get first row data
-//					String curProj = dataList.get(i).getProject();
-//					String curCode = dataList.get(i).getCode();
-//					String curDur = dataList.get(i).getDuration();
-//					double totalDur = convertToMS(curDur);
-//					reportTxt += curDate + " " + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
-//					++i;
-//
-//					// while next date matches first row
-//					while (i < dataList.size() && dataList.get(i).getDate().equals(curDate)) {
-//						curProj = dataList.get(i).getProject();
-//						curCode = dataList.get(i).getCode();
-//						curDur = dataList.get(i).getDuration();
-//						totalDur += convertToMS(curDur);
-//						reportTxt += spaces(curDate.length()) + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
-//						++i;
-//					}
-//
-//					reportTxt += spaces(curDate.length()) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
-//				}
-//
-//				table.getSortOrder().clear();
-//				writeReport(reportTxt, Globals.REPORT_SPECIFIC_PROJECT);
-//				JOptionPane.showMessageDialog(null, "Report saved as " + Globals.reportSpecificProject, "Report", JOptionPane.INFORMATION_MESSAGE);
-//				break;
+			case "Specific project":
+				String specifiedProject = JOptionPane.showInputDialog("Report on specific project", "Enter project name");
+
+				if (specifiedProject.isEmpty() || specifiedProject.equals("Enter project name")) {
+					return;
+				}
+
+				table.getSortOrder().clear();
+				table.getSortOrder().add(projectCol);
+				table.getSortOrder().add(codeCol);
+				table.getSortOrder().add(dateCol);
+
+				// find project & longest code
+				for (Jobs row : dataList) {
+					String curCode = row.getCode();
+					if (row.getProject().equals(specifiedProject) && curCode.length() > longestCode) {
+						longestCode = curCode.length();
+					}
+				}
+
+				if (longestCode == 0) { // project not found
+					JOptionPane.showMessageDialog(null, "Project: " + specifiedProject + " not found", "Not found", JOptionPane.WARNING_MESSAGE);
+					table.getSortOrder().clear();
+					return;
+				}
+
+				// collate data
+				for (int i = 0; i < dataList.size(); ++i) {
+					if (!dataList.get(i).getProject().equals(specifiedProject)) {
+						continue;
+					}
+
+					String curProj = dataList.get(i).getProject(); // get first row data
+					String curCode = dataList.get(i).getCode();
+					String curDate = dataList.get(i).getDate();
+					String curDur = dataList.get(i).getDuration();
+					double totalDur = convertToMS(curDur);
+					longestProj = curProj.length();
+					reportTxt += curProj + " " + curCode + spaces(longestCode - curCode.length()) + curDate + " " + curDur + "\n";
+					++i;
+
+					if (i < dataList.size() && dataList.get(i).getProject().equals(curProj)) {
+						// while next date matches first row
+						while (i < dataList.size() && dataList.get(i).getProject().equals(curProj)) {
+							curCode = dataList.get(i).getCode();
+							curDate = dataList.get(i).getDate();
+							curDur = dataList.get(i).getDuration();
+							totalDur += convertToMS(curDur);
+							reportTxt += curProj + " " + curCode + spaces(longestCode - curCode.length()) + curDate + " " + curDur + "\n";
+							++i;
+						}
+
+						if (i < dataList.size() && !dataList.get(i).getProject().equals(curProj)) {
+							--i;
+						}
+					}
+					else {
+						--i;
+					}
+
+					reportTxt += spaces(curDate.length()) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
+				}
+
+				table.getSortOrder().clear();
+				writeReport(reportTxt, Globals.REPORT_SPECIFIC_PROJECT);
+				JOptionPane.showMessageDialog(null, "Report saved as " + Globals.reportSpecificProject, "Report", JOptionPane.INFORMATION_MESSAGE);
+				break;
 		}
 	}
 
@@ -894,10 +934,8 @@ public class Tracker extends Application {
 		bOK.setOnAction(e -> {
 			String sd = startDatePicker.getValue().toString();
 			String ed = endDatePicker.getValue().toString();
-//System.out.println("Start date: " + startDate + "\nEnd date: " + endDate);
 			startDate = sd.substring(8,10) + "/" + sd.substring(5,7) + "/" + sd.substring(2,4);
 			endDate = ed.substring(8,10) + "/" + ed.substring(5,7) + "/" + ed.substring(2,4);
-//System.out.println("Start date: " + startDate + "\nEnd date: " + endDate);
 			stage2.close();
 			ReportDateRange();
 		});
@@ -919,33 +957,55 @@ public class Tracker extends Application {
 		table.getSortOrder().add(projectCol);
 		table.getSortOrder().add(codeCol);
 
-		// find longest project & code fields
-		for (int i = 0; i < dataList.size(); ++i) {
-			String curProj = dataList.get(i).getProject();
-			String curCode = dataList.get(i).getCode();
-			if (curProj.length() > longestProj) longestProj = curProj.length();
-			if (curCode.length() > longestCode) longestCode = curCode.length();
+		// find longest project & code fields within the date range
+		for (Jobs row : dataList) {
+			String curDate = row.getDate();
+			String curProj = row.getProject();
+			String curCode = row.getCode();
+			int rowDate = Integer.parseInt(curDate.substring(6, 8) + curDate.substring(3, 5) + curDate.substring(0,2));
+
+			if (rowDate >= Integer.parseInt(startDate.substring(6, 8) + startDate.substring(3, 5) + startDate.substring(0,2)) &&
+					rowDate <= Integer.parseInt(endDate.substring(6, 8) + endDate.substring(3, 5) + endDate.substring(0,2))) {
+				if (curProj.length() > longestProj) longestProj = curProj.length();
+				if (curCode.length() > longestCode) longestCode = curCode.length();
+			}
 		}
 
-		//TODO limit according to start & end dates
 		// collate data
 		for (int i = 0; i < dataList.size(); ++i) {
 			String curDate = dataList.get(i).getDate(); // get first row data
 			String curProj = dataList.get(i).getProject();
 			String curCode = dataList.get(i).getCode();
 			String curDur = dataList.get(i).getDuration();
+
+			int nextDate = Integer.parseInt(curDate.substring(6, 8) + curDate.substring(3, 5) + curDate.substring(0,2));
+
+			if (nextDate < Integer.parseInt(startDate.substring(6, 8) + startDate.substring(3, 5) + startDate.substring(0,2)) ||
+					nextDate > Integer.parseInt(endDate.substring(6, 8) + endDate.substring(3, 5) + endDate.substring(0,2))) {
+				continue;
+			}
+
 			double totalDur = convertToMS(curDur);
 			reportTxt += curDate + " " + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
 			++i;
 
-			// while next date matches first row
-			while (i < dataList.size() && dataList.get(i).getDate().equals(curDate)) {
-				curProj = dataList.get(i).getProject();
-				curCode = dataList.get(i).getCode();
-				curDur = dataList.get(i).getDuration();
-				totalDur += convertToMS(curDur);
-				reportTxt += spaces(curDate.length()) + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
-				++i;
+			if (i < dataList.size() && dataList.get(i).getDate().equals(curDate)) {
+				// while next date matches first row
+				while (i < dataList.size() && dataList.get(i).getDate().equals(curDate)) {
+					curProj = dataList.get(i).getProject();
+					curCode = dataList.get(i).getCode();
+					curDur = dataList.get(i).getDuration();
+					totalDur += convertToMS(curDur);
+					reportTxt += spaces(curDate.length()) + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
+					++i;
+				}
+
+				if (i < dataList.size() && !dataList.get(i).getDate().equals(curDate)) {
+					--i;
+				}
+			}
+			else {
+				--i;
 			}
 
 			reportTxt += spaces(curDate.length()) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";

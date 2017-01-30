@@ -7,6 +7,7 @@ import javafx.beans.property.SimpleStringProperty;
  *
  * @author John Wingfield
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class Jobs { // this is Public to allow the ObservableArrayList to view Jobs' data
 	private final SimpleStringProperty project;
 	private final SimpleStringProperty code;
