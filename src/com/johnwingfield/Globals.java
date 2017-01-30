@@ -16,8 +16,6 @@ class Globals {
 	static final double MS_PER_SEC = 1000;
 	static final int SEC_PER_MIN = 60;
 	static final int MIN_PER_HOUR = 60;
-//	static final int SEC_PER_HOUR = 3600;
-//	static final int HOUR_PER_DAY = 24;
 	static final int REPORT_BY_DATE = 1;
 	static final int REPORT_BY_RANGE = 2;
 	static final int REPORT_BY_PROJECT = 3;
