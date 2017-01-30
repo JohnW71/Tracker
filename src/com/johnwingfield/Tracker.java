@@ -107,7 +107,7 @@ public class Tracker extends Application {
 	static class DurTimerTask extends TimerTask {
 		public void run() {
 			if (isRunning) { // Update duration text field with current duration
-				duration = ((System.currentTimeMillis() - startTime) + previousTime) / Globals.MS_PER_SEC;
+				duration = ((System.currentTimeMillis() - startTime) + previousTime); //   / Globals.MS_PER_SEC;
 				tDuration.setText(convertToStr(duration));
 			}
 		}
@@ -604,33 +604,36 @@ public class Tracker extends Application {
 		bDelete.setDisable(true);
 
 		// ensure file contains data before checking for in-progress jobs
-		if (jobList.length > 0 && jobList[jobList.length - 1].getProject().startsWith("*")) {
-			table.getSelectionModel().select(jobList.length - 1);
-			Jobs job = table.getSelectionModel().getSelectedItem();
+		for (int i = 0; i < dataList.size(); ++i) {
+			if (dataList.get(i).getProject().startsWith("*")) {
+				table.getSelectionModel().select(i);
+				Jobs job = table.getSelectionModel().getSelectedItem();
 
-			String currentDate, oldDate;
-			DateFormat dateFormat = new SimpleDateFormat("yyMMdd");
-			currentDate = dateFormat.format(new Date());
-			oldDate = job.getDate();
-			oldDate = oldDate.substring(6, 8) + oldDate.substring(3, 5) + oldDate.substring(0,2);
+				String currentDate, oldDate;
+				DateFormat dateFormat = new SimpleDateFormat("yyMMdd");
+				currentDate = dateFormat.format(new Date());
+				oldDate = job.getDate();
+				oldDate = oldDate.substring(6, 8) + oldDate.substring(3, 5) + oldDate.substring(0,2);
 
-			if (Integer.parseInt(currentDate) > Integer.parseInt(oldDate)) { // saved job is older than today
-				job.setProject(job.getProject().substring(1));
-				writeLog();
+				if (Integer.parseInt(currentDate) > Integer.parseInt(oldDate)) { // saved job is older than today
+					job.setProject(job.getProject().substring(1));
+					writeLog();
+				}
+				else { // job is saved from earlier today
+					tJob.setText(job.getProject().substring(1));
+					tCode.setText(job.getCode());
+					tDuration.setText(job.getDuration());
+					setDate();
+					previousTime = convertToMS(job.getDuration());
+
+					dataList.remove(table.getSelectionModel().getSelectedItem());
+					bReset.setDisable(false);
+					bSave.setDisable(false);
+				}
+
+				table.getSelectionModel().clearSelection();
+				break;
 			}
-			else { // job is saved from earlier today
-				tJob.setText(job.getProject().substring(1));
-				tCode.setText(job.getCode());
-				tDuration.setText(job.getDuration());
-				setDate();
-				previousTime = convertToMS(job.getDuration());
-
-				dataList.remove(table.getSelectionModel().getSelectedItem());
-				bReset.setDisable(false);
-				bSave.setDisable(false);
-			}
-
-			table.getSelectionModel().clearSelection();
 		}
 	}
 
