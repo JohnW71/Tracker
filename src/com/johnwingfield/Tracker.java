@@ -416,10 +416,16 @@ public class Tracker extends Application {
 	 */
 	private class DateComparator implements Comparator<String> {
 		public int compare(String s1, String s2) {
-			int i1 = Integer.parseInt(s1.substring(6, 8) + s1.substring(3, 5) + s1.substring(0,2));
-			int i2 = Integer.parseInt(s2.substring(6, 8) + s2.substring(3, 5) + s2.substring(0,2));
-//			System.out.println("i1 = " + i1 + " i2 = " + i2 + " = " + (i1 < i2 ? -1 : i1 == i2 ? 0 : 1));
-			return i1 < i2 ? -1 : i1 == i2 ? 0 : 1;
+			try {
+				int i1 = Integer.parseInt(s1.substring(6, 8) + s1.substring(3, 5) + s1.substring(0, 2));
+				int i2 = Integer.parseInt(s2.substring(6, 8) + s2.substring(3, 5) + s2.substring(0, 2));
+//				System.out.println("i1 = " + i1 + " i2 = " + i2 + " = " + (i1 < i2 ? -1 : i1 == i2 ? 0 : 1));
+				return i1 < i2 ? -1 : i1 == i2 ? 0 : 1;
+			}
+			catch (Exception e) {
+				JOptionPane.showMessageDialog(null, "Invalid date info found, " + s1 + " or " + s2, "DateComparator()", JOptionPane.WARNING_MESSAGE);
+				return 0;
+			}
 		}
 	}
 
@@ -442,7 +448,7 @@ public class Tracker extends Application {
 		gridPane.setHgap(10);
 		gridPane.setVgap(10);
 
-		Scene scene = new Scene(rootNode, 360, 460);
+		Scene scene = new Scene(rootNode, 370, 470);
 
 		// add buttons and text fields
 		bSave = new Button("Save project/code");
@@ -818,7 +824,13 @@ public class Tracker extends Application {
 						--i;
 					}
 
-					reportTxt += spaces(curDate.length()) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
+					// fix for 3 digit total durations being mis-aligned
+					if (totalDur >= 100 * Globals.MS_PER_HOUR) {
+						reportTxt += spaces(curDate.length() - 1) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
+					}
+					else {
+						reportTxt += spaces(curDate.length()) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
+					}
 				}
 
 				table.getSortOrder().clear();
