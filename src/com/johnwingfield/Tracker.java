@@ -31,9 +31,6 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
-//TODO save screen position
-//TODO add data and do full test
-
 /**
  * Project based time tracking
  *
@@ -907,7 +904,7 @@ public class Tracker extends Application {
 
 		VBox vbox = new VBox(10);
 		vbox.setStyle("-fx-padding: 10;");
-		Scene scene = new Scene(vbox, 100, 180);
+		Scene scene = new Scene(vbox, 130, 180);
 		stage2.setScene(scene);
 		stage2.setResizable(false);
 
