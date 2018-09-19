@@ -439,7 +439,7 @@ public class Tracker extends Application {
 		// remove window decoration
 //		stage.initStyle(StageStyle.UNDECORATED);
 
-		stage.setTitle("Tracker v1.0 - John Wingfield");
+		stage.setTitle("Tracker v1.1 - John Wingfield");
 		stage.setResizable(false);
 
 		Group rootNode = new Group();
@@ -715,7 +715,7 @@ public class Tracker extends Application {
 		bDelete.setTooltip(new Tooltip("Delete"));
 
 		// create the toolbar
-		toolBar = new ToolBar(bStart, bStop, bSave, bReset, bContinue, bDelete);
+		toolBar = new ToolBar(bContinue, bStart, bStop, bSave, bReset, bDelete);
 	}
 
 	/**
