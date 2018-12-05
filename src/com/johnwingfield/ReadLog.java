@@ -25,7 +25,7 @@ class ReadLog {
 			int currentLine = 0;
 
 			while ((line = br.readLine()) != null) {
-				String str[] = line.split(",");
+				String[] str = line.split(",");
 				jobs[currentLine] = new Jobs(str[Globals.PROJECT], str[Globals.CODE], str[Globals.DATE], str[Globals.DURATION]);
 				++currentLine;
 			}
