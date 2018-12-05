@@ -943,7 +943,7 @@ public class Tracker extends Application {
 
 		VBox vbox = new VBox(10);
 		vbox.setStyle("-fx-padding: 10;");
-		Scene scene = new Scene(vbox, 130, 180);
+		Scene scene = new Scene(vbox, 180, 180);
 		stage2.setScene(scene);
 		stage2.setResizable(false);
 
