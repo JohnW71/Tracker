@@ -19,10 +19,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -197,18 +194,40 @@ public class Tracker extends Application {
 		}
 
 		try {
-			ReadLog file = new ReadLog();
-			int numOfJobs = file.CountLines();
+			BufferedReader br = new BufferedReader(new FileReader(Globals.fileName));
 
-			jobList = new Jobs[numOfJobs];
-			jobList = file.OpenFile(jobList);
+			int lineCount = 0;
+
+			while ((br.readLine()) != null)
+				++lineCount;
+
+			br.close();
+
+			jobList = new Jobs[lineCount];
+
+			br = new BufferedReader(new FileReader(Globals.fileName));
+			int currentLine = 0;
+			String line;
+
+			while ((line = br.readLine()) != null) {
+				String[] str = line.split(",");
+				jobList[currentLine] = new Jobs(str[Globals.PROJECT], str[Globals.CODE], str[Globals.DATE], str[Globals.DURATION]);
+				++currentLine;
+			}
+
+			br.close();
 		}
 		catch (FileNotFoundException e) { // file should already have been created if not found
 			JOptionPane.showMessageDialog(null, "Tracker.txt file not found", "LoadLog()", JOptionPane.ERROR_MESSAGE);
 			System.exit(1);
 		}
+		catch (IOException e) {
+			JOptionPane.showMessageDialog(null, "IOException " + e.getMessage(), "LoadLog()", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
+		}
 		catch (Exception e) {
-			System.out.println(e.getMessage());
+			JOptionPane.showMessageDialog(null, "Exception " + e.getMessage(), "LoadLog()", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
 		}
 	}
 
@@ -417,7 +436,7 @@ public class Tracker extends Application {
 			try {
 				int i1 = Integer.parseInt(s1.substring(6, 8) + s1.substring(3, 5) + s1.substring(0, 2));
 				int i2 = Integer.parseInt(s2.substring(6, 8) + s2.substring(3, 5) + s2.substring(0, 2));
-//				System.out.println("i1 = " + i1 + " i2 = " + i2 + " = " + (i1 < i2 ? -1 : i1 == i2 ? 0 : 1));
+//				System.out.println("i1 = " + i1 + " i2 = " + i2 + " = " + (Integer.compare(i1, i2)));
 
 				return Integer.compare(i1, i2);
 			}
@@ -438,7 +457,7 @@ public class Tracker extends Application {
 		// remove window decoration
 //		stage.initStyle(StageStyle.UNDECORATED);
 
-		stage.setTitle("Tracker v1.12 - John Wingfield");
+		stage.setTitle("Tracker v1.13 - John Wingfield");
 		stage.setResizable(false);
 
 		Group rootNode = new Group();
@@ -644,7 +663,6 @@ public class Tracker extends Application {
 	 */
 	private void makeReportMenu() {
 		Menu reportMenu = new Menu("_Reporting");
-
 		MenuItem byDate = new MenuItem("By date");
 		MenuItem byRange = new MenuItem("By date range");
 		MenuItem byProject = new MenuItem("By project");
@@ -804,8 +822,8 @@ public class Tracker extends Application {
 					String curDate = dataList.get(i).getDate();
 					String curDur = dataList.get(i).getDuration();
 					double totalDur = convertToMS(curDur);
-					reportTxt.append(curProj).append(spaces(longestProj - curProj.length())).append(curCode).append(spaces(longestCode - curCode.length()))
-							.append(curDate).append(" ").append(curDur).append("\n");
+					reportTxt.append(curProj).append(spaces(longestProj - curProj.length())).append(curCode)
+							.append(spaces(longestCode - curCode.length())).append(curDate).append(" ").append(curDur).append("\n");
 					++i;
 
 					if (i < dataList.size() && dataList.get(i).getProject().equals(curProj)) {
