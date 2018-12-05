@@ -142,9 +142,10 @@ public class Tracker extends Application {
 	 * @return String
 	 */
 	private String spaces(int length) {
-		String padding = "";
-		for (int i = 0; i <= length; ++i) padding += " ";
-		return padding;
+		StringBuilder padding = new StringBuilder();
+		for (int i = 0; i <= length; ++i)
+			padding.append(" ");
+		return padding.toString();
 	}
 
 	/**
@@ -192,7 +193,6 @@ public class Tracker extends Application {
 			} catch (IOException e) {
 				JOptionPane.showMessageDialog(null, "Unable to create Tracker.txt", "LoadLog()", JOptionPane.ERROR_MESSAGE);
 				System.exit(1);
-//				e.printStackTrace();
 			}
 		}
 
@@ -275,7 +275,6 @@ public class Tracker extends Application {
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null, "Failed writing to file", "WriteLog()", JOptionPane.ERROR_MESSAGE);
 			System.exit(1);
-//			e.printStackTrace();
 		}
 	}
 
@@ -306,7 +305,6 @@ public class Tracker extends Application {
 			writer.write(reportTxt);
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null, "Failed writing report file", "WriteReport()", JOptionPane.ERROR_MESSAGE);
-//			e.printStackTrace();
 		}
 	}
 
@@ -420,7 +418,8 @@ public class Tracker extends Application {
 				int i1 = Integer.parseInt(s1.substring(6, 8) + s1.substring(3, 5) + s1.substring(0, 2));
 				int i2 = Integer.parseInt(s2.substring(6, 8) + s2.substring(3, 5) + s2.substring(0, 2));
 //				System.out.println("i1 = " + i1 + " i2 = " + i2 + " = " + (i1 < i2 ? -1 : i1 == i2 ? 0 : 1));
-				return i1 < i2 ? -1 : i1 == i2 ? 0 : 1;
+
+				return Integer.compare(i1, i2);
 			}
 			catch (Exception e) {
 				JOptionPane.showMessageDialog(null, "Invalid date info found, " + s1 + " or " + s2, "DateComparator()", JOptionPane.WARNING_MESSAGE);
@@ -439,7 +438,7 @@ public class Tracker extends Application {
 		// remove window decoration
 //		stage.initStyle(StageStyle.UNDECORATED);
 
-		stage.setTitle("Tracker v1.1 - John Wingfield");
+		stage.setTitle("Tracker v1.12 - John Wingfield");
 		stage.setResizable(false);
 
 		Group rootNode = new Group();
@@ -723,7 +722,7 @@ public class Tracker extends Application {
 	 * @param choice name of selected report
 	 */
 	private void Report(String choice) {
-		String reportTxt = "";
+		StringBuilder reportTxt = new StringBuilder();
 		int longestProj = 0;
 		int longestCode = 0;
 
@@ -749,7 +748,8 @@ public class Tracker extends Application {
 					String curCode = dataList.get(i).getCode();
 					String curDur = dataList.get(i).getDuration();
 					double totalDur = convertToMS(curDur);
-					reportTxt += curDate + " " + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
+					reportTxt.append(curDate).append(" ").append(curProj).append(spaces(longestProj - curProj.length())).append(curCode)
+							.append(spaces(longestCode - curCode.length())).append(curDur).append("\n");
 					++i;
 
 					if (i < dataList.size() && dataList.get(i).getDate().equals(curDate)) {
@@ -759,7 +759,8 @@ public class Tracker extends Application {
 							curCode = dataList.get(i).getCode();
 							curDur = dataList.get(i).getDuration();
 							totalDur += convertToMS(curDur);
-							reportTxt += spaces(curDate.length()) + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
+							reportTxt.append(spaces(curDate.length())).append(curProj).append(spaces(longestProj - curProj.length()))
+									.append(curCode).append(spaces(longestCode - curCode.length())).append(curDur).append("\n");
 							++i;
 						}
 
@@ -771,11 +772,12 @@ public class Tracker extends Application {
 						--i;
 					}
 
-					reportTxt += spaces(curDate.length()) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
+					reportTxt.append(spaces(curDate.length())).append(spaces(longestProj)).append(spaces(longestCode))
+							.append(convertToStr(totalDur)).append("\n");
 				}
 
 				table.getSortOrder().clear();
-				writeReport(reportTxt, Globals.REPORT_BY_DATE);
+				writeReport(reportTxt.toString(), Globals.REPORT_BY_DATE);
 				JOptionPane.showMessageDialog(null, "Report saved as " + Globals.reportByDate, "Report", JOptionPane.INFORMATION_MESSAGE);
 				break;
 			case "By date range":
@@ -802,7 +804,8 @@ public class Tracker extends Application {
 					String curDate = dataList.get(i).getDate();
 					String curDur = dataList.get(i).getDuration();
 					double totalDur = convertToMS(curDur);
-					reportTxt += curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDate + " " + curDur + "\n";
+					reportTxt.append(curProj).append(spaces(longestProj - curProj.length())).append(curCode).append(spaces(longestCode - curCode.length()))
+							.append(curDate).append(" ").append(curDur).append("\n");
 					++i;
 
 					if (i < dataList.size() && dataList.get(i).getProject().equals(curProj)) {
@@ -812,7 +815,8 @@ public class Tracker extends Application {
 							curDate = dataList.get(i).getDate();
 							curDur = dataList.get(i).getDuration();
 							totalDur += convertToMS(curDur);
-							reportTxt += curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDate + " " + curDur + "\n";
+							reportTxt.append(curProj).append(spaces(longestProj - curProj.length())).append(curCode)
+									.append(spaces(longestCode - curCode.length())).append(curDate).append(" ").append(curDur).append("\n");
 							++i;
 						}
 
@@ -826,15 +830,17 @@ public class Tracker extends Application {
 
 					// fix for 3 digit total durations being mis-aligned
 					if (totalDur >= 100 * Globals.MS_PER_HOUR) {
-						reportTxt += spaces(curDate.length() - 1) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
+						reportTxt.append(spaces(curDate.length() - 1)).append(spaces(longestProj)).append(spaces(longestCode))
+								.append(convertToStr(totalDur)).append("\n");
 					}
 					else {
-						reportTxt += spaces(curDate.length()) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
+						reportTxt.append(spaces(curDate.length())).append(spaces(longestProj)).append(spaces(longestCode))
+								.append(convertToStr(totalDur)).append("\n");
 					}
 				}
 
 				table.getSortOrder().clear();
-				writeReport(reportTxt, Globals.REPORT_BY_PROJECT);
+				writeReport(reportTxt.toString(), Globals.REPORT_BY_PROJECT);
 				JOptionPane.showMessageDialog(null, "Report saved as " + Globals.reportByProject, "Report", JOptionPane.INFORMATION_MESSAGE);
 				break;
 			case "Specific project":
@@ -875,7 +881,8 @@ public class Tracker extends Application {
 					String curDur = dataList.get(i).getDuration();
 					double totalDur = convertToMS(curDur);
 					longestProj = curProj.length();
-					reportTxt += curProj + " " + curCode + spaces(longestCode - curCode.length()) + curDate + " " + curDur + "\n";
+					reportTxt.append(curProj).append(" ").append(curCode).append(spaces(longestCode - curCode.length()))
+							.append(curDate).append(" ").append(curDur).append("\n");
 					++i;
 
 					if (i < dataList.size() && dataList.get(i).getProject().equals(curProj)) {
@@ -885,7 +892,8 @@ public class Tracker extends Application {
 							curDate = dataList.get(i).getDate();
 							curDur = dataList.get(i).getDuration();
 							totalDur += convertToMS(curDur);
-							reportTxt += curProj + " " + curCode + spaces(longestCode - curCode.length()) + curDate + " " + curDur + "\n";
+							reportTxt.append(curProj).append(" ").append(curCode).append(spaces(longestCode - curCode.length()))
+									.append(curDate).append(" ").append(curDur).append("\n");
 							++i;
 						}
 
@@ -897,11 +905,12 @@ public class Tracker extends Application {
 						--i;
 					}
 
-					reportTxt += spaces(curDate.length()) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
+					reportTxt.append(spaces(curDate.length())).append(spaces(longestProj)).append(spaces(longestCode))
+							.append(convertToStr(totalDur)).append("\n");
 				}
 
 				table.getSortOrder().clear();
-				writeReport(reportTxt, Globals.REPORT_SPECIFIC_PROJECT);
+				writeReport(reportTxt.toString(), Globals.REPORT_SPECIFIC_PROJECT);
 				JOptionPane.showMessageDialog(null, "Report saved as " + Globals.reportSpecificProject, "Report", JOptionPane.INFORMATION_MESSAGE);
 				break;
 		}
@@ -960,7 +969,7 @@ public class Tracker extends Application {
 	 * Report on date range, after selecting start & end dates
 	 */
 	private void ReportDateRange() {
-		String reportTxt = "";
+		StringBuilder reportTxt = new StringBuilder();
 		int longestProj = 0;
 		int longestCode = 0;
 
@@ -998,7 +1007,8 @@ public class Tracker extends Application {
 			}
 
 			double totalDur = convertToMS(curDur);
-			reportTxt += curDate + " " + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
+			reportTxt.append(curDate).append(" ").append(curProj).append(spaces(longestProj - curProj.length())).append(curCode)
+					.append(spaces(longestCode - curCode.length())).append(curDur).append("\n");
 			++i;
 
 			if (i < dataList.size() && dataList.get(i).getDate().equals(curDate)) {
@@ -1008,7 +1018,8 @@ public class Tracker extends Application {
 					curCode = dataList.get(i).getCode();
 					curDur = dataList.get(i).getDuration();
 					totalDur += convertToMS(curDur);
-					reportTxt += spaces(curDate.length()) + curProj + spaces(longestProj - curProj.length()) + curCode + spaces(longestCode - curCode.length()) + curDur + "\n";
+					reportTxt.append(spaces(curDate.length())).append(curProj).append(spaces(longestProj - curProj.length()))
+							.append(curCode).append(spaces(longestCode - curCode.length())).append(curDur).append("\n");
 					++i;
 				}
 
@@ -1020,11 +1031,11 @@ public class Tracker extends Application {
 				--i;
 			}
 
-			reportTxt += spaces(curDate.length()) + spaces(longestProj) + spaces(longestCode) + convertToStr(totalDur) + "\n";
+			reportTxt.append(spaces(curDate.length())).append(spaces(longestProj)).append(spaces(longestCode)).append(convertToStr(totalDur)).append("\n");
 		}
 
 		table.getSortOrder().clear();
-		writeReport(reportTxt, Globals.REPORT_BY_RANGE);
+		writeReport(reportTxt.toString(), Globals.REPORT_BY_RANGE);
 		JOptionPane.showMessageDialog(null, "Report saved as " + Globals.reportByDateRange, "Report", JOptionPane.INFORMATION_MESSAGE);
 	}
 }
