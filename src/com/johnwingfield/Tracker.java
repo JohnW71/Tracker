@@ -464,7 +464,7 @@ public class Tracker extends Application {
 		// remove window decoration
 //		stage.initStyle(StageStyle.UNDECORATED);
 
-		stage.setTitle("Tracker v1.13 - John Wingfield");
+		stage.setTitle("Tracker v1.2 - John Wingfield");
 		stage.setResizable(false);
 
 		Group rootNode = new Group();
