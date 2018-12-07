@@ -17,6 +17,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import javax.swing.*;
 import java.io.*;
@@ -27,6 +28,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.prefs.Preferences;
 
 /**
  * Project based time tracking
@@ -36,27 +38,32 @@ import java.util.TimerTask;
  */
 public class Tracker extends Application {
 	private Jobs[] jobList;
+	private ToolBar toolBar = new ToolBar();
+	private EventHandler<ActionEvent> eHandler;
+	private String endDate;
+	private DatePicker startDatePicker;
+	private DatePicker endDatePicker;
+	private String startDate;
+	private final MenuBar menuBar = new MenuBar();
 	private final TableView<Jobs> table = new TableView<>();
+	private final TableColumn<Jobs, String> projectCol = new TableColumn<>("Project");
+	private final TableColumn<Jobs, String> codeCol = new TableColumn<>("Code");
+	private final TableColumn<Jobs, String> dateCol = new TableColumn<>("Date");
+	private final TableColumn<Jobs, String> durationCol = new TableColumn<>("Duration");
+	private static Button bSave, bStart, bStop, bContinue, bDelete, bReset;
+	private static TextField tJob, tCode, tDuration, tDate;
 	private static ObservableList<Jobs> dataList;
 	private static double startTime = 0;
 	private static double previousTime = 0;
 	private static double duration = 0;
 	private static boolean isRunning = false;
-	private static Button bSave, bStart, bStop, bContinue, bDelete, bReset;
-	private static TextField tJob, tCode, tDuration, tDate;
 	private static final DurTimerTask durTask = new DurTimerTask();
 	private static final Timer durTimer = new Timer(true);
-	private final MenuBar menuBar = new MenuBar();
-	private ToolBar toolBar = new ToolBar();
-	private EventHandler<ActionEvent> eHandler;
-	private final TableColumn<Jobs, String> projectCol = new TableColumn<>("Project");
-	private final TableColumn<Jobs, String> codeCol = new TableColumn<>("Code");
-	private final TableColumn<Jobs, String> dateCol = new TableColumn<>("Date");
-	private final TableColumn<Jobs, String> durationCol = new TableColumn<>("Duration");
-	private DatePicker startDatePicker;
-	private DatePicker endDatePicker;
-	private String startDate;
-	private String endDate;
+	private static final String nodeName = "ViewSwitcher";
+	private static final String windowPositionX = "Window_Position_X";
+	private static final String windowPositionY = "Window_Position_Y";
+	private static final Double defaultX = 10.0;
+	private static final Double defaultY = 10.0;
 
 	public static void main(String[] args) {
 		try {
@@ -618,6 +625,21 @@ public class Tracker extends Application {
 
 		stage.setScene(scene);
 		stage.show();
+
+		// set window position
+		Preferences pref = Preferences.userRoot().node(nodeName);
+		double x = pref.getDouble(windowPositionX, defaultX);
+		double y = pref.getDouble(windowPositionY, defaultY);
+		stage.setX(x);
+		stage.setY(y);
+
+		// save window position on exit
+		stage.setOnCloseRequest((final WindowEvent event) -> {
+			Preferences preferences = Preferences.userRoot().node(nodeName);
+			preferences.putDouble(windowPositionX, stage.getX());
+			preferences.putDouble(windowPositionY, stage.getY());
+		});
+
 		setDate();
 		gridPane.requestFocus(); // otherwise project text field starts with focus
 
