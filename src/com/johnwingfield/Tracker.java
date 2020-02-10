@@ -438,7 +438,7 @@ public class Tracker extends Application {
 	/**
 	 * Compare dates by YYMMDD for table sort
 	 */
-	private class DateComparator implements Comparator<String> {
+	private static class DateComparator implements Comparator<String> {
 		public int compare(String s1, String s2) {
 			try {
 				int i1 = Integer.parseInt(s1.substring(6, 8) + s1.substring(3, 5) + s1.substring(0, 2));
